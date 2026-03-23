@@ -742,18 +742,7 @@ async function signInWithGoogle() {
   setBtnLoad("google-btn", true);
   try {
     const provider = new firebase.auth.GoogleAuthProvider();
-    await fbAuth.signInWithRedirect(provider);
-  } catch(e) {
-    toast("❌ " + e.message, "error");
-    setBtnLoad("google-btn", false, "Continue with Google");
-  }
-}
-
-// Handle redirect result on page load
-async function handleRedirectResult() {
-  try {
-    const result = await fbAuth.getRedirectResult();
-    if (!result || !result.user) return;
+    const result = await fbAuth.signInWithPopup(provider);
     S.user = result.user;
     const token = await result.user.getIdToken();
     const resp = await api("POST", "/api/auth", {}, token);
@@ -766,9 +755,15 @@ async function handleRedirectResult() {
       await bootApp(result.user);
     }
   } catch(e) {
-    console.error("Redirect result error:", e);
+    if (e.code !== "auth/popup-closed-by-user") {
+      toast("❌ " + e.message, "error");
+    }
   }
+  setBtnLoad("google-btn", false, "Continue with Google");
 }
+
+// No-op — kept for compatibility, redirect flow no longer used
+async function handleRedirectResult() {}
 
 async function submitKYC() {
   setBtnLoad("kyc-btn", true);
