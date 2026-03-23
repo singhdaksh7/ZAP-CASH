@@ -1,0 +1,1507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CryptoKash — USDT to INR</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<style>
+:root{--bg:#070b12;--surface:#0d1220;--surface2:#121828;--border:#1e2d47;--border2:#253450;--accent:#00f0a0;--accent-dim:rgba(0,240,160,0.08);--accent2:#0ea5e9;--danger:#ef4444;--warn:#f97316;--gold:#fbbf24;--text:#e2eaf6;--text2:#8fa3c0;--text3:#4d6282;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,240,160,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,240,160,.025) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0;}
+.orb{position:fixed;border-radius:50%;filter:blur(100px);pointer-events:none;z-index:0;}
+.orb1{width:500px;height:500px;background:rgba(0,240,160,.055);top:-150px;right:-100px;}
+.orb2{width:400px;height:400px;background:rgba(14,165,233,.05);bottom:0;left:-100px;}
+#loader{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+#loader h2{font-size:24px;font-weight:800;color:var(--accent);}
+#loader p{color:var(--text2);font-size:14px;}
+.ring{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
+.pulse{animation:pulse 1.5s infinite;}
+.screen{display:none;position:relative;z-index:1;min-height:100vh;}
+.screen.active{display:flex;flex-direction:column;}
+#login-screen{align-items:center;justify-content:center;padding:20px;}
+.login-wrap{width:100%;max-width:440px;}
+.brand{text-align:center;margin-bottom:32px;}
+.brand h1{font-size:40px;font-weight:800;letter-spacing:-2px;background:linear-gradient(135deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.brand p{color:var(--text2);font-size:14px;margin-top:6px;}
+.lcard{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:32px;box-shadow:0 32px 80px rgba(0,0,0,.5);}
+.lcard h2{font-size:21px;font-weight:700;margin-bottom:6px;}
+.lcard .sub{color:var(--text2);font-size:13px;margin-bottom:24px;line-height:1.5;}
+.prog{display:flex;gap:6px;margin-bottom:24px;}
+.prog-s{flex:1;height:3px;border-radius:2px;background:var(--border);transition:background .4s;}
+.prog-s.on{background:var(--accent);}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-bottom:6px;}
+input,select,textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:12px 14px;color:var(--text);font-family:'Outfit',sans-serif;font-size:15px;outline:none;transition:border-color .2s,box-shadow .2s;}
+input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,240,160,.1);}
+input::placeholder{color:var(--text3);}
+.btn{width:100%;padding:13px;border-radius:11px;border:none;font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;letter-spacing:.2px;}
+.btn-p{background:linear-gradient(135deg,var(--accent),#00c87a);color:#000;}
+.btn-p:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(0,240,160,.35);}
+.btn-p:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.btn-o{background:transparent;border:1px solid var(--border2);color:var(--text);}
+.btn-o:hover{border-color:var(--accent);color:var(--accent);}
+.btn-d{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:var(--danger);}
+.btn-sm{padding:8px 14px;width:auto;font-size:13px;border-radius:9px;}
+.btn-xs{padding:5px 11px;width:auto;font-size:12px;border-radius:7px;}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px;}
+.google-btn{width:100%;padding:13px;border-radius:11px;border:1px solid #4285f4;background:var(--surface2);color:var(--text);font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:10px;}
+.google-btn:hover{background:rgba(66,133,244,.1);}
+.google-btn:disabled{opacity:.5;cursor:not-allowed;}
+#app-screen{background:var(--bg);}
+.app-layout{display:flex;height:100vh;overflow:hidden;}
+.sidebar{width:228px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:18px 10px;overflow-y:auto;}
+.s-brand{display:flex;align-items:center;gap:10px;padding:8px 10px;margin-bottom:22px;}
+.s-logo{width:34px;height:34px;background:linear-gradient(135deg,var(--accent),#00c87a);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:900;color:#000;}
+.s-brand span{font-size:17px;font-weight:800;letter-spacing:-.5px;color:var(--accent);}
+.nav-sec{margin:14px 0 4px;padding:0 10px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--text3);}
+.ni{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;cursor:pointer;transition:all .2s;color:var(--text2);font-size:13px;font-weight:500;margin-bottom:1px;position:relative;}
+.ni:hover{background:var(--surface2);color:var(--text);}
+.ni.active{background:var(--accent-dim);color:var(--accent);border:1px solid rgba(0,240,160,.15);}
+.ni-icon{font-size:17px;width:20px;text-align:center;}
+.nbadge{margin-left:auto;background:var(--danger);color:#fff;font-size:10px;font-weight:700;border-radius:100px;padding:1px 7px;display:none;}
+.nbadge.show{display:inline;}
+.s-bot{margin-top:auto;padding-top:14px;border-top:1px solid var(--border);}
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;flex-shrink:0;}
+.topbar-title{font-size:17px;font-weight:700;}
+.topbar-r{display:flex;align-items:center;gap:12px;}
+.upill{display:flex;align-items:center;gap:9px;background:var(--surface2);border:1px solid var(--border);border-radius:100px;padding:5px 13px 5px 5px;cursor:pointer;}
+.uav{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#000;}
+.upill span{font-size:13px;font-weight:600;color:var(--text2);}
+.pbody{padding:24px;flex:1;}
+.panel{display:none;}
+.panel.active{display:block;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:22px;}
+.wallet-hero{background:linear-gradient(135deg,#0a1830,#0d2040,#081520);border:1px solid rgba(14,165,233,.25);border-radius:22px;padding:26px;position:relative;overflow:hidden;margin-bottom:18px;}
+.wallet-hero::after{content:'USDT';position:absolute;right:24px;top:20px;font-size:72px;font-weight:900;color:rgba(14,165,233,.06);font-family:'IBM Plex Mono',monospace;line-height:1;}
+.wh-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--text2);margin-bottom:5px;}
+.wh-bal{font-size:44px;font-weight:800;font-family:'IBM Plex Mono',monospace;color:#fff;letter-spacing:-2px;line-height:1;}
+.wh-bal .unit{font-size:18px;color:var(--accent2);letter-spacing:0;margin-left:6px;}
+.wh-inr{font-size:14px;color:var(--text2);margin-top:5px;font-family:'IBM Plex Mono',monospace;}
+.wh-acts{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap;}
+.wh-btn{flex:1;min-width:90px;padding:10px;border-radius:10px;border:none;font-family:'Outfit',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;}
+.wh-btn.p{background:var(--accent);color:#000;}
+.wh-btn.p:hover{box-shadow:0 6px 20px rgba(0,240,160,.3);}
+.wh-btn.s{background:rgba(255,255,255,.07);color:var(--text);border:1px solid var(--border2);}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:18px;}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;}
+.kpi-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-bottom:7px;}
+.kpi-val{font-size:20px;font-weight:800;font-family:'IBM Plex Mono',monospace;letter-spacing:-1px;}
+.kpi-val.g{color:var(--accent);}
+.kpi-val.b{color:var(--accent2);}
+.kpi-val.gold{color:var(--gold);}
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.stitle{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--text3);}
+.txlist{display:flex;flex-direction:column;gap:7px;}
+.txi{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:13px 15px;cursor:pointer;transition:border-color .2s;}
+.txi:hover{border-color:var(--border2);}
+.txicon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.txicon.dep{background:rgba(0,240,160,.1);}
+.txicon.wit{background:rgba(239,68,68,.1);}
+.txicon.pend{background:rgba(251,191,36,.1);}
+.txbody{flex:1;min-width:0;}
+.tx-type{font-size:13px;font-weight:600;}
+.tx-meta{font-size:11px;color:var(--text3);margin-top:1px;font-family:'IBM Plex Mono',monospace;}
+.txr{text-align:right;flex-shrink:0;}
+.txamt{font-size:13px;font-weight:700;font-family:'IBM Plex Mono',monospace;}
+.txamt.g{color:var(--accent);}
+.txamt.r{color:var(--danger);}
+.tag{display:inline-flex;align-items:center;border-radius:5px;padding:2px 7px;font-size:10px;font-weight:600;}
+.tag.s{background:rgba(0,240,160,.1);color:var(--accent);border:1px solid rgba(0,240,160,.2);}
+.tag.p{background:rgba(251,191,36,.1);color:var(--gold);border:1px solid rgba(251,191,36,.2);}
+.tag.f{background:rgba(239,68,68,.1);color:var(--danger);border:1px solid rgba(239,68,68,.2);}
+.tag.i{background:rgba(14,165,233,.1);color:var(--accent2);border:1px solid rgba(14,165,233,.2);}
+.rate-bar{display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border:1px solid var(--border);border-radius:13px;padding:13px 16px;margin-bottom:18px;}
+.rate-bar .rlbl{font-size:10px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-bottom:3px;}
+.rate-bar .rval{font-size:22px;font-weight:800;font-family:'IBM Plex Mono',monospace;color:var(--accent);}
+.addr-box{background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:13px;margin-top:13px;display:flex;align-items:flex-start;gap:11px;}
+.addr-txt{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);flex:1;word-break:break-all;line-height:1.6;}
+.copy-btn{background:rgba(0,240,160,.08);border:1px solid rgba(0,240,160,.2);border-radius:7px;padding:6px 11px;color:var(--accent);font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s;flex-shrink:0;}
+.copy-btn:hover{background:rgba(0,240,160,.18);}
+.fee-box{background:var(--surface2);border:1px solid var(--border);border-radius:11px;padding:13px 15px;margin-bottom:16px;}
+.fee-row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;color:var(--text2);}
+.fee-row:last-child{border-top:1px solid var(--border);margin-top:5px;padding-top:9px;color:var(--text);font-weight:700;}
+.fee-row span:last-child{font-family:'IBM Plex Mono',monospace;}
+.amt-hero{position:relative;margin-bottom:7px;}
+.amt-hero input{font-size:28px;font-weight:800;padding:17px 78px 17px 15px;font-family:'IBM Plex Mono',monospace;}
+.amt-unit{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:rgba(0,240,160,.1);border:1px solid rgba(0,240,160,.25);color:var(--accent);border-radius:7px;padding:4px 11px;font-size:12px;font-weight:700;}
+.req-item{display:flex;align-items:center;gap:13px;background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:15px;margin-bottom:9px;}
+.req-item.new{border-color:rgba(249,115,22,.4);}
+.req-body{flex:1;min-width:0;}
+.req-user{font-size:13px;font-weight:600;}
+.req-detail{font-size:11px;color:var(--text3);margin-top:2px;font-family:'IBM Plex Mono',monospace;}
+.utbl{width:100%;border-collapse:collapse;}
+.utbl th{text-align:left;padding:9px 13px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);border-bottom:1px solid var(--border);}
+.utbl td{padding:12px 13px;font-size:12px;border-bottom:1px solid rgba(255,255,255,.04);}
+.utbl tr:hover td{background:rgba(255,255,255,.02);}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:300;align-items:center;justify-content:center;padding:18px;}
+.overlay.show{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:22px;width:100%;max-width:450px;box-shadow:0 40px 100px rgba(0,0,0,.6);animation:mIn .3s cubic-bezier(.34,1.56,.64,1);overflow:hidden;}
+@keyframes mIn{from{transform:scale(.88);opacity:0;}to{transform:scale(1);opacity:1;}}
+.mbody{padding:26px;}
+.micon{width:50px;height:50px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:14px;}
+.micon.warn{background:rgba(249,115,22,.12);border:1px solid rgba(249,115,22,.3);}
+.modal h2{font-size:19px;font-weight:800;margin-bottom:5px;}
+.modal p{font-size:13px;color:var(--text2);line-height:1.55;margin-bottom:16px;}
+.dtbl{background:var(--surface2);border:1px solid var(--border);border-radius:11px;overflow:hidden;margin-bottom:16px;}
+.dtr{display:flex;justify-content:space-between;align-items:center;padding:10px 13px;border-bottom:1px solid rgba(255,255,255,.05);}
+.dtr:last-child{border-bottom:none;}
+.dtr .dk{font-size:11px;color:var(--text3);}
+.dtr .dv{font-size:12px;font-weight:600;font-family:'IBM Plex Mono',monospace;}
+.dtr .dv.g{color:var(--accent);}
+.macts{display:flex;gap:9px;}
+.btn-app{flex:1;padding:12px;border-radius:11px;border:none;background:linear-gradient(135deg,var(--accent),#00c87a);color:#000;font-family:'Outfit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;transition:all .2s;}
+.btn-app:hover{box-shadow:0 5px 18px rgba(0,240,160,.3);}
+.btn-rej{flex:1;padding:12px;border-radius:11px;background:transparent;border:1px solid rgba(239,68,68,.4);color:var(--danger);font-family:'Outfit',sans-serif;font-weight:700;font-size:13px;cursor:pointer;}
+.btn-rej:hover{background:rgba(239,68,68,.1);}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);border:1px solid var(--border2);border-radius:11px;padding:11px 18px;font-size:13px;font-weight:600;color:var(--text);z-index:500;transition:transform .3s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;box-shadow:0 8px 28px rgba(0,0,0,.4);}
+.toast.show{transform:translateX(-50%) translateY(0);}
+.toast.success{border-color:rgba(0,240,160,.3);color:var(--accent);}
+.toast.error{border-color:rgba(239,68,68,.3);color:var(--danger);}
+.mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:8px 0 env(safe-area-inset-bottom,0);z-index:100;}
+.mob-nav-items{display:flex;justify-content:space-around;}
+.mni{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 14px;cursor:pointer;color:var(--text3);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;transition:color .2s;position:relative;}
+.mni.active,.mni:hover{color:var(--accent);}
+.mni-icon{font-size:19px;}
+.mni-badge{position:absolute;top:4px;right:10px;width:15px;height:15px;background:var(--danger);color:#fff;border-radius:50%;font-size:9px;font-weight:800;display:none;align-items:center;justify-content:center;}
+.mni-badge.show{display:flex;}
+@media(max-width:768px){.sidebar{display:none;}.mob-nav{display:block;}.main{padding-bottom:68px;}.pbody{padding:14px;}.wh-bal{font-size:32px;}.kpi-row{grid-template-columns:1fr 1fr;}}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+/* ── Skeleton loader ───────────────────────────────────────── */
+@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+.skel{border-radius:8px;background:linear-gradient(90deg,var(--border) 25%,var(--border2) 50%,var(--border) 75%);background-size:800px 100%;animation:shimmer 1.4s infinite linear;}
+/* ── Empty state ────────────────────────────────────────────── */
+.empty-state{text-align:center;padding:36px 20px;color:var(--text3);}
+.empty-state .es-icon{font-size:36px;margin-bottom:10px;}
+.empty-state .es-txt{font-size:13px;line-height:1.6;}
+/* ── Retry button ───────────────────────────────────────────── */
+.retry-btn{margin-top:12px;background:transparent;border:1px solid var(--border2);border-radius:8px;padding:7px 16px;color:var(--text2);font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;}
+.retry-btn:hover{border-color:var(--accent);color:var(--accent);}
+/* ── Copy feedback ──────────────────────────────────────────── */
+.copy-btn.copied{background:rgba(0,240,160,.2);border-color:var(--accent);color:var(--accent);}
+/* ── KYC stat chips ─────────────────────────────────────────── */
+.kyc-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:100px;font-size:10px;font-weight:700;}
+.kyc-chip.s{background:rgba(0,240,160,.1);color:var(--accent);}
+.kyc-chip.p{background:rgba(14,165,233,.1);color:var(--accent2);}
+.kyc-chip.w{background:rgba(251,191,36,.1);color:var(--gold);}
+.kyc-chip.r{background:rgba(239,68,68,.1);color:var(--danger);}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<div id="loader">
+  <div class="ring"></div>
+  <h2>CryptoKash</h2>
+  <p id="loader-msg">Initialising...</p>
+</div>
+
+<div id="login-screen" class="screen">
+  <div class="login-wrap">
+    <div class="brand"><h1>CryptoKash</h1><p>USDT → INR · Instant Exchange</p></div>
+    <!-- SIGN IN CARD -->
+    <div class="lcard" id="ls1">
+      <h2>Welcome back 👋</h2>
+      <p class="sub">Sign in to your CryptoKash account</p>
+      <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="you@email.com"></div>
+      <div class="field" style="margin-bottom:6px"><label>Password</label>
+        <div style="position:relative">
+          <input type="password" id="login-pass" placeholder="Your password" onkeypress="if(event.key==='Enter')emailSignIn()">
+          <span onclick="togglePwd()" style="position:absolute;right:13px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;color:var(--text3)" id="pwd-eye">👁</span>
+        </div>
+      </div>
+      <div style="text-align:right;margin-bottom:14px"><a href="#" onclick="forgotPassword()" style="font-size:12px;color:var(--accent);text-decoration:none">Forgot password?</a></div>
+      <button class="btn btn-p" id="email-btn" onclick="emailSignIn()">Sign In →</button>
+      <div style="display:flex;align-items:center;gap:10px;margin:16px 0">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        <span style="font-size:11px;color:var(--text3);font-weight:600">OR</span>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
+      <button class="google-btn" id="google-btn" onclick="signInWithGoogle()">
+        <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Continue with Google
+      </button>
+      <p style="text-align:center;font-size:13px;color:var(--text3);margin-top:18px">Don't have an account? <a href="#" onclick="showSignUp()" style="color:var(--accent);font-weight:700;text-decoration:none">Sign Up</a></p>
+    </div>
+
+    <!-- SIGN UP CARD -->
+    <div class="lcard" id="ls-signup" style="display:none">
+      <h2>Create Account 🚀</h2>
+      <p class="sub">Join CryptoKash and start exchanging USDT to INR</p>
+      <div class="field"><label>Full Name</label><input type="text" id="reg-name" placeholder="Your full name"></div>
+      <div class="field"><label>Email</label><input type="email" id="reg-email" placeholder="you@email.com"></div>
+      <div class="field" style="margin-bottom:6px"><label>Password</label>
+        <div style="position:relative">
+          <input type="password" id="reg-pass" placeholder="Min 6 characters" onkeypress="if(event.key==='Enter')emailRegister()">
+          <span onclick="togglePwd2()" style="position:absolute;right:13px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:16px;color:var(--text3)" id="pwd-eye2">👁</span>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:18px"><label>Confirm Password</label><input type="password" id="reg-pass2" placeholder="Re-enter password" onkeypress="if(event.key==='Enter')emailRegister()"></div>
+      <button class="btn btn-p" id="register-btn" onclick="emailRegister()">Create Account →</button>
+      <div style="display:flex;align-items:center;gap:10px;margin:16px 0">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        <span style="font-size:11px;color:var(--text3);font-weight:600">OR</span>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
+      <button class="google-btn" onclick="signInWithGoogle()">
+        <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+        Sign Up with Google
+      </button>
+      <p style="text-align:center;font-size:13px;color:var(--text3);margin-top:18px">Already have an account? <a href="#" onclick="showSignIn()" style="color:var(--accent);font-weight:700;text-decoration:none">Sign In</a></p>
+    </div>
+
+    <!-- EMAIL VERIFICATION CARD -->
+    <div class="lcard" id="ls-verify" style="display:none">
+      <div style="text-align:center;font-size:48px;margin-bottom:12px">📧</div>
+      <h2 style="text-align:center">Verify your email</h2>
+      <p class="sub" style="text-align:center">We've sent a verification link to <strong id="verify-email-show"></strong>. Click the link in your email to activate your account.</p>
+      <div style="background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.3);border-radius:12px;padding:14px;margin:16px 0;font-size:13px;color:var(--text2);text-align:center">
+        📬 Check your inbox (and spam folder)
+      </div>
+      <button class="btn btn-p" id="check-verify-btn" onclick="checkEmailVerified()">I've verified my email ✓</button>
+      <button class="btn btn-o" onclick="resendVerification()" style="margin-top:8px">Resend verification email</button>
+      <p style="text-align:center;font-size:12px;color:var(--text3);margin-top:14px"><a href="#" onclick="showSignIn()" style="color:var(--accent);text-decoration:none">← Back to Sign In</a></p>
+    </div>
+    <div class="lcard" id="ls2" style="display:none">
+      <div class="prog"><div class="prog-s on"></div><div class="prog-s on"></div><div class="prog-s on"></div></div>
+      <h2>Complete KYC 📋</h2>
+      <p class="sub">Required for withdrawals. Encrypted & secure.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="field" style="margin:0"><label>First Name</label><input type="text" id="kfn" placeholder="Rahul"></div>
+        <div class="field" style="margin:0"><label>Last Name</label><input type="text" id="kln" placeholder="Sharma"></div>
+      </div>
+      <div class="field" style="margin-top:10px"><label>Email</label><input type="email" id="kemail" placeholder="you@email.com"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="field" style="margin:0"><label>PAN Number</label><input type="text" id="kpan" placeholder="ABCDE1234F" maxlength="10" style="text-transform:uppercase"></div>
+        <div class="field" style="margin:0"><label>Date of Birth</label><input type="text" id="kdob" placeholder="DD/MM/YYYY"></div>
+      </div>
+      <div class="field"><label>Aadhaar Number</label><input type="text" id="kaadh" placeholder="XXXX XXXX XXXX" maxlength="14"></div>
+      <button class="btn btn-p" id="kyc-btn" onclick="submitKYC()">Submit KYC & Enter →</button>
+      <div style="text-align:center;margin-top:10px"><a href="#" onclick="skipKYC()" style="color:var(--text3);font-size:12px;text-decoration:none">Skip for now (limited access)</a></div>
+    </div>
+  </div>
+</div>
+
+<div id="app-screen" class="screen">
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="s-brand"><div class="s-logo">₭</div><span>CryptoKash</span></div>
+      <div class="nav-sec">Main</div>
+      <div class="ni active" onclick="gp('dashboard',this)"><span class="ni-icon">🏠</span>Dashboard</div>
+      <div class="ni" onclick="gp('deposit',this)"><span class="ni-icon">⬇</span>Deposit USDT</div>
+      <div class="ni" onclick="gp('withdraw',this)"><span class="ni-icon">⬆</span>Withdraw INR</div>
+      <div class="ni" onclick="gp('history',this)"><span class="ni-icon">📋</span>History</div>
+      <div class="nav-sec">Account</div>
+      <div class="ni" onclick="gp('kyc',this)"><span class="ni-icon">🪪</span>KYC Status</div>
+      <div class="ni" onclick="gp('profile',this)"><span class="ni-icon">👤</span>Profile</div>
+      <div class="nav-sec" id="adm-sec" style="display:none">Admin</div>
+      <div class="ni" id="adm-nav" onclick="gp('admin',this)" style="display:none"><span class="ni-icon">🛡</span>Admin Panel<span class="nbadge" id="nb">0</span></div>
+      <div class="ni" id="usr-nav" onclick="gp('users',this)" style="display:none"><span class="ni-icon">👥</span>All Users</div>
+      <div class="s-bot">
+        <div class="ni" onclick="logout()" style="color:var(--danger)"><span class="ni-icon">🚪</span>Logout</div>
+      </div>
+    </aside>
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-title" id="ptitle">Dashboard</div>
+        <div class="topbar-r">
+          <div style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;display:flex;align-items:center;gap:5px;">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--accent);display:inline-block;" class="pulse"></span>
+            ₹<span id="live-rate">—</span>/USDT
+          </div>
+          <div class="upill" onclick="gp('profile',null)">
+            <div class="uav" id="top-av">?</div>
+            <span id="top-name">...</span>
+          </div>
+        </div>
+      </div>
+      <div class="pbody">
+        <div class="panel active" id="panel-dashboard">
+          <div class="wallet-hero">
+            <div class="wh-lbl">Available Balance</div>
+            <div class="wh-bal" id="wb">—<span class="unit">USDT</span></div>
+            <div class="wh-inr" id="wb-inr">Loading...</div>
+            <div class="wh-acts">
+              <button class="wh-btn p" onclick="gp('deposit',null)">⬇ Deposit</button>
+              <button class="wh-btn s" onclick="gp('withdraw',null)">⬆ Withdraw</button>
+              <button class="wh-btn s" onclick="gp('history',null)">📋 History</button>
+            </div>
+          </div>
+          <div class="kpi-row">
+            <div class="kpi"><div class="kpi-lbl">Total Deposited</div><div class="kpi-val g" id="kd">—</div></div>
+            <div class="kpi"><div class="kpi-lbl">Total Withdrawn</div><div class="kpi-val b" id="kw">—</div></div>
+            <div class="kpi"><div class="kpi-lbl">Rate</div><div class="kpi-val gold" id="kr">—</div></div>
+            <div class="kpi"><div class="kpi-lbl">KYC</div><div id="kkyc" style="margin-top:6px"></div></div>
+          </div>
+          <!-- Pending withdrawals for user -->
+          <div id="pending-section" style="display:none;margin-bottom:18px">
+            <div class="sh"><div class="stitle">⏳ Pending Requests</div></div>
+            <div id="pending-list"></div>
+          </div>
+
+          <div class="sh"><div class="stitle">Recent Transactions</div><a href="#" onclick="gp('history',null)" style="font-size:12px;color:var(--accent);text-decoration:none;font-weight:600">View all →</a></div>
+          <div class="txlist" id="dash-txs"></div>
+        </div>
+        <div class="panel" id="panel-deposit">
+          <div class="rate-bar"><div><div class="rlbl">Deposit Rate</div><div class="rval">₹<span id="dep-rate">—</span></div></div><span style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2);color:var(--gold);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600">⚡ TRC-20 Only</span></div>
+          <div class="card" style="margin-bottom:14px">
+            <div style="font-size:14px;font-weight:700;margin-bottom:12px">Your USDT Deposit Address</div>
+            <p style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6">Send <strong>USDT TRC-20</strong> to this address only. Minimum 10 USDT.</p>
+            <div class="addr-box">
+              <div class="addr-txt" id="dep-addr">Loading...</div>
+              <button class="copy-btn" onclick="copyAddr()">📋 Copy</button>
+            </div>
+          </div>
+          <div class="card">
+            <div style="font-size:13px;font-weight:700;margin-bottom:8px">⚠️ Important</div>
+            <p style="font-size:13px;color:var(--text2);line-height:1.7">• Only send <strong>USDT on TRC-20</strong> (Tron) network<br>• Minimum deposit: <strong>10 USDT</strong><br>• Sending other tokens = permanent loss<br>• Credits after 20 block confirmations (~1–5 min)</p>
+          </div>
+        </div>
+        <div class="panel" id="panel-withdraw">
+          <div class="rate-bar"><div><div class="rlbl">Withdrawal Rate</div><div class="rval">₹<span id="wit-rate">—</span></div></div><span style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace">Avail: <span id="wit-avail">—</span></span></div>
+          <div id="bank-saved" style="display:none;margin-bottom:14px">
+            <div style="background:linear-gradient(135deg,#0d1a30,#0a1520);border:1px solid rgba(14,165,233,.25);border-radius:16px;padding:20px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:13px">
+                <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent2)">Saved Bank Account</span>
+                <button class="btn btn-xs btn-o" onclick="showBankForm()">✏️ Edit</button>
+              </div>
+              <div style="display:flex;gap:18px;flex-wrap:wrap">
+                <div><div style="font-size:9px;color:var(--text3);margin-bottom:2px">HOLDER</div><div style="font-weight:600;font-family:'IBM Plex Mono',monospace;font-size:13px" id="sv-n">—</div></div>
+                <div><div style="font-size:9px;color:var(--text3);margin-bottom:2px">ACCOUNT</div><div style="font-weight:600;font-family:'IBM Plex Mono',monospace;font-size:13px" id="sv-a">—</div></div>
+                <div><div style="font-size:9px;color:var(--text3);margin-bottom:2px">IFSC</div><div style="font-weight:600;font-family:'IBM Plex Mono',monospace;font-size:13px" id="sv-i">—</div></div>
+                <div><div style="font-size:9px;color:var(--text3);margin-bottom:2px">BANK</div><div style="font-weight:600;font-family:'IBM Plex Mono',monospace;font-size:13px" id="sv-b">—</div></div>
+              </div>
+            </div>
+          </div>
+          <div id="bank-form" class="card" style="margin-bottom:14px">
+            <div style="font-size:13px;font-weight:700;margin-bottom:14px">🏦 Bank Account Details</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div class="field" style="margin:0"><label>Holder Name</label><input type="text" id="bf-n" placeholder="As per bank"></div>
+              <div class="field" style="margin:0"><label>Bank Name</label><input type="text" id="bf-b" placeholder="HDFC Bank"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+              <div class="field" style="margin:0"><label>Account No.</label><input type="number" id="bf-a" placeholder="Account number"></div>
+              <div class="field" style="margin:0"><label>Confirm Account No.</label><input type="number" id="bf-a2" placeholder="Re-enter"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+              <div class="field" style="margin:0"><label>IFSC Code</label><input type="text" id="bf-i" placeholder="HDFC0001234" style="text-transform:uppercase"></div>
+              <div class="field" style="margin:0"><label>Account Type</label><select id="bf-t"><option value="savings">Savings</option><option value="current">Current</option></select></div>
+            </div>
+            <button class="btn btn-p" id="save-bank-btn" style="margin-top:14px" onclick="saveBank()">Save Bank Details</button>
+          </div>
+          <div id="wit-form" style="display:none">
+            <div class="card">
+              <div style="font-size:13px;font-weight:700;margin-bottom:13px">💸 Amount to Withdraw</div>
+              <div class="amt-hero"><input type="number" id="wit-amt" placeholder="0.00" oninput="calcW()"><div class="amt-unit">USDT</div></div>
+              <div style="display:flex;justify-content:space-between;margin-bottom:16px">
+                <span style="font-size:12px;color:var(--text2);font-family:'IBM Plex Mono',monospace" id="wit-conv">≈ ₹0.00</span>
+                <span style="font-size:12px;color:var(--accent);cursor:pointer;font-weight:600" onclick="setMax()">Use Max</span>
+              </div>
+              <div class="fee-box">
+                <div class="fee-row"><span>USDT Amount</span><span id="fu">0.00 USDT</span></div>
+                <div class="fee-row"><span>Exchange Rate</span><span id="fr">₹— / USDT</span></div>
+                <div class="fee-row"><span>Platform Fee (0.5%)</span><span id="ff">₹0.00</span></div>
+                <div class="fee-row"><span>You Receive</span><span id="fn" style="color:var(--accent)">₹0.00</span></div>
+              </div>
+              <button class="btn btn-p" id="wit-btn" onclick="submitWithdraw()">Request INR Withdrawal →</button>
+            </div>
+          </div>
+        </div>
+        <div class="panel" id="panel-history">
+          <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+            <button class="btn btn-sm btn-p" onclick="loadHistory('all',this)">All</button>
+            <button class="btn btn-sm btn-o" onclick="loadHistory('deposit',this)">Deposits</button>
+            <button class="btn btn-sm btn-o" onclick="loadHistory('withdraw',this)">Withdrawals</button>
+          </div>
+          <div class="txlist" id="hist-txs"><div style="color:var(--text3);font-size:13px;padding:20px;text-align:center">Loading...</div></div>
+        </div>
+        <div class="panel" id="panel-kyc">
+          <div class="card" style="margin-bottom:14px">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+              <div style="width:48px;height:48px;border-radius:13px;background:rgba(0,240,160,.1);border:1px solid rgba(0,240,160,.2);display:flex;align-items:center;justify-content:center;font-size:22px">🪪</div>
+              <div><div style="font-size:16px;font-weight:700">KYC Verification</div><div id="kyc-ov" style="margin-top:4px"></div></div>
+            </div>
+            <div id="kyc-steps"></div>
+          </div>
+
+          <!-- KYC form always available -->
+          <div class="card" style="margin-bottom:14px" id="kyc-form-card">
+            <div style="font-size:13px;font-weight:700;margin-bottom:14px">📋 Submit / Update KYC</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div class="field" style="margin:0"><label>First Name</label><input type="text" id="kfn2" placeholder="Rahul"></div>
+              <div class="field" style="margin:0"><label>Last Name</label><input type="text" id="kln2" placeholder="Sharma"></div>
+            </div>
+            <div class="field" style="margin-top:10px"><label>Email</label><input type="email" id="kemail2" placeholder="you@email.com"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div class="field" style="margin:0"><label>PAN Number</label><input type="text" id="kpan2" placeholder="ABCDE1234F" maxlength="10" style="text-transform:uppercase"></div>
+              <div class="field" style="margin:0"><label>Date of Birth</label><input type="text" id="kdob2" placeholder="DD/MM/YYYY"></div>
+            </div>
+            <div class="field"><label>Aadhaar Number</label><input type="text" id="kaadh2" placeholder="XXXX XXXX XXXX" maxlength="14"></div>
+            <button class="btn btn-p" id="kyc-submit-btn" onclick="submitKYCFromPanel()">Submit KYC →</button>
+          </div>
+
+          <div class="card">
+            <div style="font-size:13px;font-weight:700;margin-bottom:12px">📊 Withdrawal Limits</div>
+            <div class="fee-box" style="margin:0">
+              <div class="fee-row"><span>Daily Withdraw Limit</span><span id="dl">—</span></div>
+              <div class="fee-row"><span>Monthly Limit</span><span id="ml">—</span></div>
+              <div class="fee-row"><span>Minimum Withdrawal</span><span>₹500</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="panel" id="panel-profile">
+          <div class="card" style="margin-bottom:14px">
+            <div style="display:flex;align-items:center;gap:18px;margin-bottom:18px">
+              <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#000" id="pav">?</div>
+              <div>
+                <div style="font-size:19px;font-weight:800" id="pname">—</div>
+                <div style="font-size:12px;color:var(--text2);font-family:'IBM Plex Mono',monospace;margin-top:3px" id="pphone">—</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div class="field" style="margin:0"><label>First Name</label><input type="text" id="pfn"></div>
+              <div class="field" style="margin:0"><label>Last Name</label><input type="text" id="pln"></div>
+            </div>
+            <div class="field" style="margin-top:10px;margin-bottom:0"><label>Email</label><input type="email" id="pemail"></div>
+            <button class="btn btn-sm btn-p" style="margin-top:13px;width:auto;padding:10px 22px" onclick="saveProfile()">Save Changes</button>
+          </div>
+          <div class="card">
+            <div style="font-size:13px;font-weight:700;margin-bottom:10px">Danger Zone</div>
+            <button class="btn btn-d" onclick="logout()">🚪 Logout</button>
+          </div>
+        </div>
+        <div class="panel" id="panel-admin">
+          <div class="kpi-row">
+            <div class="kpi"><div class="kpi-lbl">Total Users</div><div class="kpi-val g" id="au">—</div></div>
+            <div class="kpi"><div class="kpi-lbl">Pending Withdrawals</div><div class="kpi-val gold" id="ap">—</div></div>
+            <div class="kpi"><div class="kpi-lbl">USDT Deposited</div><div class="kpi-val b" id="ad">—</div></div>
+            <div class="kpi"><div class="kpi-lbl">INR Paid Out</div><div class="kpi-val" id="ai">—</div></div>
+          </div>
+          <div class="card" style="margin-bottom:16px;padding:14px 18px">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-bottom:10px">KYC Breakdown</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap" id="kyc-chips">
+              <span class="kyc-chip s">✓ Verified: —</span>
+              <span class="kyc-chip p">⏳ Submitted: —</span>
+              <span class="kyc-chip w">⚠ Pending: —</span>
+              <span class="kyc-chip r">✕ Rejected: —</span>
+            </div>
+          </div>
+
+          <!-- Rate -->
+          <div class="card" style="margin-bottom:16px">
+            <div style="font-size:13px;font-weight:700;margin-bottom:13px">⚙️ Exchange Rate</div>
+            <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
+              <div class="field" style="margin:0;flex:1;min-width:140px"><label>₹ per USDT</label><input type="number" id="ar" placeholder="87.42" step="0.01"></div>
+              <button class="btn btn-p btn-sm" style="padding:12px 18px" onclick="updateRate()">Update Rate</button>
+            </div>
+          </div>
+
+          <!-- Admin tabs -->
+          <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+            <button class="btn btn-sm btn-p" onclick="adminTab('withdrawals',this)">💸 Withdrawals</button>
+            <button class="btn btn-sm btn-o" onclick="adminTab('kyc',this)">🪪 KYC Requests</button>
+            <button class="btn btn-sm btn-o" onclick="adminTab('balances',this)">💰 Edit Balances</button>
+          </div>
+
+          <!-- Withdrawals tab -->
+          <div id="atab-withdrawals">
+            <div class="stitle" style="margin-bottom:12px">Pending Withdrawal Requests</div>
+            <div id="req-list"><div style="color:var(--text3);font-size:13px;padding:20px;text-align:center">Loading...</div></div>
+          </div>
+
+          <!-- KYC tab -->
+          <div id="atab-kyc" style="display:none">
+            <div class="stitle" style="margin-bottom:12px">KYC Submissions</div>
+            <div id="kyc-list"><div style="color:var(--text3);font-size:13px;padding:20px;text-align:center">Loading...</div></div>
+          </div>
+
+          <!-- Balance edit tab -->
+          <div id="atab-balances" style="display:none">
+            <div class="stitle" style="margin-bottom:12px">All User Balances</div>
+            <div id="bal-users-list"><div style="color:var(--text3);font-size:13px;padding:20px;text-align:center">Loading...</div></div>
+          </div>
+
+          <!-- Add/Remove balance modal -->
+          <div id="edit-bal-form" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:400;align-items:center;justify-content:center;padding:18px">
+            <div style="background:var(--surface);border:1px solid var(--border2);border-radius:22px;width:100%;max-width:420px;padding:26px">
+              <h2 style="font-size:18px;font-weight:800;margin-bottom:4px">Manage Balance</h2>
+              <p id="edit-bal-name" style="color:var(--text2);font-size:13px;margin-bottom:18px">—</p>
+              <input type="hidden" id="bal-uid">
+
+              <!-- Tabs -->
+              <div style="display:flex;gap:8px;margin-bottom:18px">
+                <button id="bal-add-tab" class="btn btn-sm btn-p" onclick="balTab('add')" style="flex:1">➕ Add Balance</button>
+                <button id="bal-rem-tab" class="btn btn-sm btn-o" onclick="balTab('remove')" style="flex:1">➖ Remove Balance</button>
+              </div>
+
+              <div class="field"><label id="bal-amt-label">Amount to Add (USDT)</label><input type="number" id="bal-amt" placeholder="0.00" step="0.01" min="0.01"></div>
+              <div class="field" style="margin-bottom:18px"><label>Note (shown to user)</label><input type="text" id="bal-note" placeholder="e.g. Bonus credit, Manual deposit..."></div>
+
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-p" id="bal-submit-btn" onclick="submitBalance()">✅ Confirm</button>
+                <button class="btn btn-o" onclick="document.getElementById('edit-bal-form').style.display='none'" style="width:auto;padding:13px 20px">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="panel" id="panel-users">
+          <div class="card" style="overflow-x:auto">
+            <table class="utbl">
+              <thead><tr><th>User</th><th>Email</th><th>KYC</th><th>Balance</th><th>Deposited</th><th>Joined</th><th>Action</th></tr></thead>
+              <tbody id="utbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="mob-nav">
+    <div class="mob-nav-items">
+      <div class="mni active" onclick="gpm('dashboard',this)"><div class="mni-icon">🏠</div>Home</div>
+      <div class="mni" onclick="gpm('deposit',this)"><div class="mni-icon">⬇</div>Deposit</div>
+      <div class="mni" onclick="gpm('withdraw',this)"><div class="mni-icon">⬆</div>Withdraw</div>
+      <div class="mni" onclick="gpm('history',this)"><div class="mni-icon">📋</div>History</div>
+      <div class="mni" onclick="gpm('admin',this)"><div class="mni-icon">🛡</div>Admin<div class="mni-badge" id="mob-badge"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="req-modal">
+  <div class="modal">
+    <div class="mbody">
+      <div class="micon warn">🔔</div>
+      <h2>Withdrawal Request</h2>
+      <p>Review and approve this INR withdrawal.</p>
+      <div class="dtbl" id="req-dtbl"></div>
+      <div class="field" style="margin-bottom:10px"><label>UTR Number <span style="color:var(--accent)">(required for approval)</span></label><input type="text" id="autr" placeholder="e.g. 123456789012" style="margin-top:5px"></div>
+      <div class="field" style="margin-bottom:10px"><label>Rejection Reason (if rejecting)</label><input type="text" id="areason" placeholder="e.g. Invalid bank details" style="margin-top:5px"></div>
+      <div class="field" style="margin-bottom:14px"><label>Admin Note (optional)</label><input type="text" id="anote" placeholder="e.g. Sent via NEFT" style="margin-top:5px"></div>
+      <div class="macts">
+        <button class="btn-app" id="app-btn" onclick="approveReq()">✓ Approve</button>
+        <button class="btn-rej" id="rej-btn" onclick="rejectReq()">✕ Reject</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const FB_CONFIG = {
+  apiKey:            "AIzaSyBqa-lzMIAcVuZOKblE7zUS7jYqbmW4-XA",
+  authDomain:        "cryptokash-d8cfa.firebaseapp.com",
+  projectId:         "cryptokash-d8cfa",
+  storageBucket:     "cryptokash-d8cfa.appspot.com",
+  messagingSenderId: "435901041653",
+  appId:             "1:435901041653:web:29743fe8a77c87619b6ebc"
+};
+const API = "";  // Empty = relative URL, works on any domain
+
+firebase.initializeApp(FB_CONFIG);
+const fbAuth = firebase.auth();
+const fsDb   = firebase.firestore();
+
+let S = {user:null,profile:null,wallet:null,rate:null,bank:null,isAdmin:false,activeReq:null,walletUnsub:null};
+
+// First check for redirect result, then normal auth state
+handleRedirectResult().then(() => {
+  fbAuth.onAuthStateChanged(async fbUser => {
+    // Only handle if not already processing redirect
+    const loader = document.getElementById('loader');
+    if (loader.style.display === 'none') return;
+    loader.style.display = 'none';
+    if (fbUser) {
+      S.user = fbUser;
+      await bootApp(fbUser);
+    } else {
+      document.getElementById('login-screen').classList.add('active');
+    }
+  });
+});
+
+async function emailSignIn() {
+  const email = v("login-email"), pass = document.getElementById("login-pass").value;
+  if (!email || !pass) return toast("⚠️ Enter email and password", "error");
+  setBtnLoad("email-btn", true);
+  try {
+    const cred = await fbAuth.signInWithEmailAndPassword(email, pass);
+    S.user = cred.user;
+    await bootApp(cred.user);
+  } catch(e) {
+    const msg = e.code === "auth/wrong-password" || e.code === "auth/user-not-found" || e.code === "auth/invalid-credential" ? "❌ Invalid email or password" : "❌ " + e.message;
+    toast(msg, "error");
+  }
+  setBtnLoad("email-btn", false, "Sign In →");
+}
+
+function showSignUp() {
+  document.getElementById("ls1").style.display = "none";
+  document.getElementById("ls-signup").style.display = "block";
+  document.getElementById("ls-verify").style.display = "none";
+}
+function showSignIn() {
+  document.getElementById("ls1").style.display = "block";
+  document.getElementById("ls-signup").style.display = "none";
+  document.getElementById("ls-verify").style.display = "none";
+}
+function togglePwd2() {
+  const i = document.getElementById("reg-pass");
+  const e = document.getElementById("pwd-eye2");
+  i.type = i.type === "password" ? "text" : "password";
+  e.textContent = i.type === "password" ? "👁" : "🙈";
+}
+
+async function emailRegister() {
+  const name  = v("reg-name");
+  const email = v("reg-email");
+  const pass  = document.getElementById("reg-pass").value;
+  const pass2 = document.getElementById("reg-pass2").value;
+  if (!name)  return toast("⚠️ Enter your full name", "error");
+  if (!email) return toast("⚠️ Enter your email", "error");
+  if (!pass)  return toast("⚠️ Enter a password", "error");
+  if (pass.length < 6) return toast("⚠️ Password must be at least 6 characters", "error");
+  if (pass !== pass2) return toast("⚠️ Passwords do not match", "error");
+  setBtnLoad("register-btn", true, "Creating account...");
+  try {
+    const cred = await fbAuth.createUserWithEmailAndPassword(email, pass);
+    // Update display name
+    await cred.user.updateProfile({ displayName: name });
+    // Send verification email
+    await cred.user.sendEmailVerification();
+    S.user = cred.user;
+    // Create user record in backend
+    try {
+      const token = await cred.user.getIdToken();
+      await api("POST", "/api/auth", { name }, token);
+    } catch(apiErr) { console.warn("API:", apiErr); }
+    // Show verify screen
+    document.getElementById("ls-signup").style.display = "none";
+    document.getElementById("ls-verify").style.display = "block";
+    document.getElementById("verify-email-show").textContent = email;
+    toast("📧 Verification email sent!", "success");
+  } catch(e) {
+    const msg = e.code === "auth/email-already-in-use" ? "❌ Email already registered — try signing in" : "❌ " + e.message;
+    toast(msg, "error");
+  }
+  setBtnLoad("register-btn", false, "Create Account →");
+}
+
+async function checkEmailVerified() {
+  setBtnLoad("check-verify-btn", true, "Checking...");
+  try {
+    await S.user.reload();
+    if (S.user.emailVerified) {
+      toast("✅ Email verified! Welcome to CryptoKash!", "success");
+      document.getElementById("login-screen").style.display = "none";
+      document.getElementById("loader").style.display = "flex";
+      document.getElementById("loader-msg").textContent = "Setting up your account...";
+      bootApp();
+    } else {
+      toast("⚠️ Email not verified yet — check your inbox", "error");
+    }
+  } catch(e) { toast("❌ " + e.message, "error"); }
+  setBtnLoad("check-verify-btn", false, "I've verified my email ✓");
+}
+
+async function resendVerification() {
+  try {
+    await S.user.sendEmailVerification();
+    toast("📧 Verification email resent!", "success");
+  } catch(e) { toast("❌ " + e.message, "error"); }
+}
+
+async function forgotPassword() {
+  const email = v("login-email");
+  if (!email) return toast("⚠️ Enter your email first", "error");
+  try {
+    await fbAuth.sendPasswordResetEmail(email);
+    toast("📧 Reset email sent to " + email, "success");
+  } catch(e) {
+    toast("❌ " + e.message, "error");
+  }
+}
+
+function togglePwd() {
+  const inp = document.getElementById("login-pass");
+  const eye = document.getElementById("pwd-eye");
+  if (inp.type === "password") { inp.type = "text"; eye.textContent = "🙈"; }
+  else { inp.type = "password"; eye.textContent = "👁"; }
+}
+
+async function signInWithGoogle() {
+  setBtnLoad("google-btn", true);
+  try {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    await fbAuth.signInWithRedirect(provider);
+  } catch(e) {
+    toast("❌ " + e.message, "error");
+    setBtnLoad("google-btn", false, "Continue with Google");
+  }
+}
+
+// Handle redirect result on page load
+async function handleRedirectResult() {
+  try {
+    const result = await fbAuth.getRedirectResult();
+    if (!result || !result.user) return;
+    S.user = result.user;
+    const token = await result.user.getIdToken();
+    const resp = await api("POST", "/api/auth", {}, token);
+    if (resp.isNew) {
+      document.getElementById('loader').style.display = 'none';
+      document.getElementById('login-screen').classList.add('active');
+      document.getElementById('ls1').style.display = 'none';
+      document.getElementById('ls2').style.display = 'block';
+    } else {
+      await bootApp(result.user);
+    }
+  } catch(e) {
+    console.error("Redirect result error:", e);
+  }
+}
+
+async function submitKYC() {
+  setBtnLoad("kyc-btn", true);
+  try {
+    const token = await S.user.getIdToken();
+    await api("POST","/api/kyc",{firstName:v("kfn"),lastName:v("kln"),email:v("kemail"),pan:v("kpan").toUpperCase(),dob:v("kdob"),aadhaar:v("kaadh")},token);
+    toast("✅ KYC submitted!","success");
+    await bootApp(S.user);
+  } catch(e) { toast("❌ "+e.message,"error"); }
+  setBtnLoad("kyc-btn", false, "Submit KYC & Enter →");
+}
+
+async function skipKYC() { await bootApp(S.user); }
+
+async function submitKYCFromPanel() {
+  const fn=v("kfn2"),ln=v("kln2"),email=v("kemail2"),pan=v("kpan2").toUpperCase(),dob=v("kdob2"),aadhaar=v("kaadh2");
+  if (!fn||!ln||!email||!pan||!dob||!aadhaar) return toast("⚠️ Fill all fields","error");
+  setBtnLoad("kyc-submit-btn",true);
+  try {
+    const token = await S.user.getIdToken();
+    await api("POST","/api/kyc",{firstName:fn,lastName:ln,email,pan,dob,aadhaar},token);
+    toast("✅ KYC submitted for review!","success");
+    S.profile.kycStatus = "submitted";
+    loadKYCPanel(S.profile);
+  } catch(e) { toast("❌ "+e.message,"error"); }
+  setBtnLoad("kyc-submit-btn",false,"Submit KYC →");
+}
+
+async function bootApp(fbUser) {
+  document.getElementById('loader').style.display = 'flex';
+  document.getElementById('loader-msg').textContent = 'Loading your account...';
+  S.user = fbUser;
+  try {
+    const token = await fbUser.getIdToken();
+    // Ensure user record exists (creates it if first time)
+    await api("POST", "/api/auth", {}, token).catch(()=>{});
+    const [wallet, rate, profile] = await Promise.all([
+      api("GET","/api/wallet",null,token),
+      api("GET","/api/rates"),
+      api("GET","/api/auth",null,token),
+    ]);
+    S.wallet=wallet; S.rate=rate; S.profile=profile;
+    S.bank=profile.bank||null;
+    const tr = await fbUser.getIdTokenResult();
+    S.isAdmin = !!tr.claims.admin;
+    if (S.isAdmin) {
+      document.getElementById("adm-sec").style.display="block";
+      document.getElementById("adm-nav").style.display="flex";
+      document.getElementById("usr-nav").style.display="flex";
+    }
+    populateAll();
+    subscribeWallet(fbUser.uid);
+    startRatePoll();
+    if (S.isAdmin) loadAdmin(token);
+    document.getElementById('loader').style.display='none';
+    document.getElementById('login-screen').classList.remove('active');
+    document.getElementById('app-screen').classList.add('active');
+  } catch(e) {
+    toast("❌ Load failed: "+e.message,"error");
+    document.getElementById('loader').style.display='none';
+    document.getElementById('login-screen').classList.add('active');
+  }
+}
+
+function subscribeWallet(uid) {
+  if (S.walletUnsub) S.walletUnsub();
+  if (S.profileUnsub) S.profileUnsub();
+
+  // Real-time wallet balance
+  S.walletUnsub = fsDb.collection("wallets").doc(uid).onSnapshot(snap => {
+    if (!snap.exists) return;
+    const d = snap.data();
+    if (S.wallet && d.balance > S.wallet.balance) toast("💰 "+(d.balance-S.wallet.balance).toFixed(2)+" USDT credited!","success");
+    S.wallet = {...S.wallet,...d};
+    updateWalletUI();
+    loadRecentTx();
+  });
+
+  // Real-time profile (KYC status, bank info)
+  S.profileUnsub = fsDb.collection("users").doc(uid).onSnapshot(snap => {
+    if (!snap.exists) return;
+    const d = snap.data();
+    const oldKYC = S.profile?.kycStatus;
+    S.profile = {...S.profile,...d};
+    S.bank = d.bank || S.bank || null;
+    // Notify KYC status change
+    if (oldKYC && oldKYC !== d.kycStatus) {
+      if (d.kycStatus === "verified") toast("🎉 Your KYC has been verified!", "success");
+      else if (d.kycStatus === "rejected") toast("❌ Your KYC was rejected. Please resubmit.", "error");
+    }
+    // Update KYC badge everywhere
+    document.getElementById("kkyc").innerHTML = kycTag(d.kycStatus);
+    loadKYCPanel(S.profile);
+  });
+
+  // Real-time withdrawal status for user
+  fsDb.collection("withdrawals").where("uid","==",uid).where("status","in",["approved","rejected"]).onSnapshot(snap => {
+    snap.docChanges().forEach(change => {
+      if (change.type === "modified" || change.type === "added") {
+        const w = change.doc.data();
+        if (w.status === "approved" && w.utr) toast("✅ Withdrawal approved! UTR: "+w.utr, "success");
+        else if (w.status === "rejected") toast("❌ Withdrawal rejected — amount refunded to your wallet", "error");
+      }
+    });
+    loadRecentTx();
+  });
+
+  if (S.isAdmin) {
+    fsDb.collection("withdrawals").where("status","==","pending").onSnapshot(snap=>{
+      const c=snap.size;
+      const nb=document.getElementById("nb"),mb=document.getElementById("mob-badge");
+      nb.textContent=c;nb.classList.toggle("show",c>0);
+      mb.textContent=c;mb.classList.toggle("show",c>0);
+    });
+  }
+}
+
+function populateAll() {
+  updateWalletUI();
+  const p=S.profile||{};
+  const name=p.firstName||p.name||S.user?.displayName||"User";
+  document.getElementById("top-name").textContent=name.split(" ")[0];
+  document.getElementById("top-av").textContent=(name[0]||"U").toUpperCase();
+  document.getElementById("live-rate").textContent=S.rate?.inr?.toFixed(2)||"—";
+  document.getElementById("kd").textContent=fu(S.wallet?.totalDeposited);
+  document.getElementById("kw").textContent=fu(S.wallet?.totalWithdrawn);
+  document.getElementById("kr").textContent="₹"+(S.rate?.inr?.toFixed(2)||"—");
+  document.getElementById("kkyc").innerHTML=kycTag(p.kycStatus);
+  document.getElementById("dep-addr").textContent=S.wallet?.depositAddress||"—";
+  document.getElementById("dep-rate").textContent=S.rate?.inr?.toFixed(2)||"—";
+  document.getElementById("wit-rate").textContent=S.rate?.inr?.toFixed(2)||"—";
+  document.getElementById("wit-avail").textContent=fu(S.wallet?.balance)+" USDT";
+  document.getElementById("fr").textContent="₹"+(S.rate?.inr?.toFixed(2)||"—")+" / USDT";
+  document.getElementById("pav").textContent=(name[0]||"U").toUpperCase();
+  document.getElementById("pname").textContent=p.name||name;
+  document.getElementById("pphone").textContent=S.user?.email||"—";
+  document.getElementById("pfn").value=p.firstName||"";
+  document.getElementById("pln").value=p.lastName||"";
+  document.getElementById("pemail").value=p.email||S.user?.email||"";
+  loadKYCPanel(p);
+  if (S.bank) showSavedBank(S.bank);
+  loadRecentTx();
+}
+
+function updateWalletUI() {
+  const b=S.wallet?.balance??0,r=S.rate?.inr??0;
+  document.getElementById("wb").innerHTML=fu(b)+'<span class="unit">USDT</span>';
+  document.getElementById("wb-inr").textContent="≈ ₹"+fi(b*r)+" INR";
+  document.getElementById("wit-avail").textContent=fu(b)+" USDT";
+}
+
+function loadKYCPanel(p) {
+  const s=p.kycStatus||"pending";
+  document.getElementById("kyc-ov").innerHTML=kycTag(s);
+  const steps=[{l:"Account Verified",done:true},{l:"PAN Card",done:s==="verified"||s==="submitted"},{l:"Aadhaar",done:s==="verified"||s==="submitted"},{l:"Admin Approval",done:s==="verified"}];
+  document.getElementById("kyc-steps").innerHTML=steps.map(st=>`<div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05)"><div style="width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;background:${st.done?'var(--accent)':'var(--border)'};color:${st.done?'#000':'var(--text3)'}">${st.done?'✓':'?'}</div><div style="flex:1;font-size:13px;font-weight:500">${st.l}</div>${kycTag(st.done?'verified':'pending')}</div>`).join("");
+  document.getElementById("dl").textContent=s==="verified"?"Unlimited":"₹50,000";
+  document.getElementById("ml").textContent=s==="verified"?"Unlimited":"₹5,00,000";
+  // Pre-fill form with existing data
+  if (p.firstName) document.getElementById("kfn2").value=p.firstName;
+  if (p.lastName)  document.getElementById("kln2").value=p.lastName;
+  if (p.email)     document.getElementById("kemail2").value=p.email;
+  if (p.pan)       document.getElementById("kpan2").value=p.pan;
+  if (p.dob)       document.getElementById("kdob2").value=p.dob;
+  if (p.aadhaar)   document.getElementById("kaadh2").value=p.aadhaar;
+  // Hide form if already verified
+  const fc = document.getElementById("kyc-form-card");
+  if (fc) fc.style.display = s==="verified" ? "none" : "block";
+}
+
+async function loadRecentTx() {
+  try {
+    const token=await S.user.getIdToken();
+    const [deps,wits]=await Promise.all([
+      api("GET","/api/deposit?history=1",null,token),
+      api("GET","/api/withdraw",null,token)
+    ]);
+
+    // Split pending vs completed
+    const pendingWits = wits.filter(w => w.status === "pending");
+    const doneWits    = wits.filter(w => w.status !== "pending");
+
+    // Pending section on dashboard
+    const sec = document.getElementById("pending-section");
+    const lst = document.getElementById("pending-list");
+    if (pendingWits.length) {
+      sec.style.display = "block";
+      lst.innerHTML = pendingWits.map(w => `
+        <div style="background:var(--surface);border:1px solid rgba(249,115,22,.35);border-radius:13px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+          <div>
+            <div style="font-size:13px;font-weight:600">⬆ INR Withdrawal Request</div>
+            <div style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-top:3px">
+              ${fu(w.amountUSDT)} USDT → ₹${fi(w.netINR)} &nbsp;·&nbsp; ${w.bank?.bankName||""} ${w.bank?.masked||""}
+            </div>
+            <div style="font-size:10px;color:var(--text3);margin-top:2px">${w.createdAt?.seconds?new Date(w.createdAt.seconds*1000).toLocaleString("en-IN",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"—"}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="tag p">⏳ Pending Admin Review</span>
+            <button class="btn btn-xs btn-d" onclick="cancelWithdraw('${w.id}')">✕ Cancel</button>
+          </div>
+        </div>`).join("");
+    } else {
+      sec.style.display = "none";
+    }
+
+    // History = all completed (deposits + done withdrawals), most recent first
+    const completed = mergeSort(deps, doneWits);
+    renderTxs(completed.slice(0,5), "dash-txs");
+    renderTxs(completed, "hist-txs");
+  } catch(e){ console.error(e); }
+}
+
+async function cancelWithdraw(id) {
+  if (!confirm("Cancel this withdrawal? Your USDT will be refunded.")) return;
+  try {
+    const token = await S.user.getIdToken();
+    await fetch(API + "/api/withdraw?id=" + id, { method:"DELETE", headers:{"Authorization":"Bearer "+token} });
+    toast("✅ Withdrawal cancelled. USDT refunded.", "success");
+    loadRecentTx();
+    S.wallet.balance += 0; // trigger refresh
+    const token2 = await S.user.getIdToken();
+    const w = await api("GET","/api/wallet",null,token2);
+    S.wallet = w; updateWalletUI();
+  } catch(e) { toast("❌ " + e.message, "error"); }
+}
+
+async function loadHistory(type,btn) {
+  document.querySelectorAll("#panel-history .btn").forEach(b=>b.className="btn btn-sm btn-o");
+  if(btn) btn.className="btn btn-sm btn-p";
+  renderTxSkeleton("hist-txs");
+  try {
+    const token=await S.user.getIdToken();
+    const [deps,wits]=await Promise.all([
+      api("GET","/api/deposit?history=1",null,token),
+      api("GET","/api/withdraw",null,token)
+    ]);
+    let all=mergeSort(deps,wits);
+    if(type==="deposit")  all=all.filter(t=>t._k==="dep");
+    if(type==="withdraw") all=all.filter(t=>t._k==="wit");
+    if(!all.length){
+      document.getElementById("hist-txs").innerHTML='<div class="empty-state"><div class="es-icon">📋</div><div class="es-txt">No transactions yet.<br>Deposit USDT to get started.</div></div>';
+      return;
+    }
+    renderTxs(all,"hist-txs");
+  } catch(e){
+    document.getElementById("hist-txs").innerHTML=`<div class="empty-state"><div class="es-icon">⚠️</div><div class="es-txt">Failed to load transactions.<br>${e.message}</div><button class="retry-btn" onclick="loadHistory('${type}',null)">↺ Retry</button></div>`;
+  }
+}
+
+function mergeSort(deps,wits){return[...deps.map(t=>({...t,_k:"dep"})),...wits.map(t=>({...t,_k:"wit"}))].sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));}
+
+function renderTxs(txs,id) {
+  const el=document.getElementById(id);
+  if(!el) return;
+  if(!txs.length){el.innerHTML='<div class="empty-state"><div class="es-icon">📭</div><div class="es-txt">No transactions yet</div></div>';return;}
+  el.innerHTML=txs.map(tx=>{
+    const dep=tx._k==="dep";
+    const amt=fu(tx.amountUSDT||tx.amount);
+    const dt=tx.createdAt?.seconds?new Date(tx.createdAt.seconds*1000).toLocaleString("en-IN",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"—";
+
+    // Determine type label, icon, color
+    let label, ic, sign, ac;
+    if(tx.type==="admin_debit"){
+      label="🔻 Admin Removed"+(tx.note?" — "+tx.note:"");
+      ic="wit"; sign="−"; ac="r";
+    } else if(tx.adminAction){
+      label="🔺 Admin Added"+(tx.note?" — "+tx.note:"");
+      ic="dep"; sign="+"; ac="g";
+    } else if(dep){
+      label="USDT Deposit";
+      ic="dep"; sign="+"; ac="g";
+    } else {
+      label=tx.status==="pending"?"INR Withdrawal (Pending)":"INR Withdrawal";
+      ic=tx.status==="pending"?"pend":"wit"; sign="−"; ac="r";
+    }
+
+    // Badge
+    let badge;
+    if(tx.status==="confirmed"||tx.status==="paid"||tx.status==="approved") badge='<span class="tag s">✓ Completed</span>';
+    else if(tx.status==="pending") badge='<span class="tag p">⏳ Pending</span>';
+    else if(tx.status==="rejected") badge='<span class="tag f">✕ Rejected</span>';
+    else if(tx.status==="cancelled") badge='<span class="tag f">✕ Cancelled</span>';
+    else badge='<span class="tag i">'+tx.status+'</span>';
+
+    return `<div class="txi"><div class="txicon ${ic}">${dep||tx.adminAction?"⬇":"⬆"}</div><div class="txbody"><div class="tx-type">${label}</div><div class="tx-meta">${dt}</div></div><div class="txr"><div class="txamt ${ac}">${sign}${amt} USDT</div><div style="margin-top:2px">${badge}</div></div></div>`;
+  }).join("");
+}
+
+function showSavedBank(bank) {
+  document.getElementById("sv-n").textContent=bank.holderName;
+  document.getElementById("sv-a").textContent=bank.masked||bank.accountNo;
+  document.getElementById("sv-i").textContent=bank.ifsc;
+  document.getElementById("sv-b").textContent=bank.bankName;
+  document.getElementById("bank-saved").style.display="block";
+  document.getElementById("bank-form").style.display="none";
+  document.getElementById("wit-form").style.display="block";
+}
+
+function showBankForm() {
+  document.getElementById("bank-saved").style.display="none";
+  document.getElementById("bank-form").style.display="block";
+  document.getElementById("wit-form").style.display="none";
+}
+
+async function saveBank() {
+  const n=v("bf-n"),b=v("bf-b"),a=v("bf-a"),a2=v("bf-a2"),i=v("bf-i").toUpperCase(),t=v("bf-t");
+  if(!n||!b||!a||!i) return toast("⚠️ Fill all fields","error");
+  if(a!==a2) return toast("⚠️ Account numbers don't match","error");
+  setBtnLoad("save-bank-btn",true);
+  try {
+    const token=await S.user.getIdToken();
+    const res=await api("POST","/api/withdraw?bank=1",{holderName:n,bankName:b,accountNo:a,ifsc:i,accountType:t},token);
+    S.bank=res.bank;showSavedBank(res.bank);toast("🏦 Bank details saved!","success");
+  } catch(e){toast("❌ "+e.message,"error");}
+  setBtnLoad("save-bank-btn",false,"Save Bank Details");
+}
+
+function calcW() {
+  const amt=parseFloat(v("wit-amt"))||0,r=S.rate?.inr||0,fee=S.rate?.feePct||0.005;
+  const gross=amt*r,feeA=gross*fee,net=gross-feeA;
+  document.getElementById("wit-conv").textContent="≈ ₹"+fi(gross);
+  document.getElementById("fu").textContent=fu(amt)+" USDT";
+  document.getElementById("ff").textContent="₹"+fi(feeA);
+  document.getElementById("fn").textContent="₹"+fi(net);
+}
+function setMax(){document.getElementById("wit-amt").value=(S.wallet?.balance||0).toFixed(2);calcW();}
+
+async function submitWithdraw() {
+  const amt=parseFloat(v("wit-amt"));
+  if(!amt||amt<=0) return toast("⚠️ Enter amount","error");
+  if(amt>S.wallet?.balance) return toast("⚠️ Insufficient balance","error");
+  setBtnLoad("wit-btn",true);
+  try {
+    const token=await S.user.getIdToken();
+    const res=await api("POST","/api/withdraw",{amountUSDT:amt},token);
+    toast("📤 Withdrawal submitted! ₹"+fi(res.netINR)+" coming soon.","success");
+    document.getElementById("wit-amt").value="";calcW();
+    S.wallet.balance-=amt;updateWalletUI();loadRecentTx();
+  } catch(e){toast("❌ "+e.message,"error");}
+  setBtnLoad("wit-btn",false,"Request INR Withdrawal →");
+}
+
+async function saveProfile() {
+  const fn=v("pfn"),ln=v("pln"),email=v("pemail");
+  if(!fn) return toast("⚠️ First name is required","error");
+  const update={name:(fn+(ln?" "+ln:"")).trim()};
+  if(email) update.email=email;
+  try {
+    const token=await S.user.getIdToken();
+    await api("PATCH","/api/auth",update,token);
+    S.profile={...S.profile,...update};
+    document.getElementById("top-name").textContent=fn;
+    document.getElementById("pname").textContent=update.name;
+    toast("✅ Profile updated!","success");
+  } catch(e){toast("❌ "+e.message,"error");}
+}
+
+async function loadAdmin(token) {
+  try {
+    if(!token) token=await S.user.getIdToken();
+    const [stats,reqs,usersResp]=await Promise.all([
+      api("GET","/api/admin?action=stats",null,token),
+      api("GET","/api/admin?action=withdrawals",null,token),
+      api("GET","/api/admin?action=users",null,token),
+    ]);
+    document.getElementById("au").textContent=stats.totalUsers;
+    document.getElementById("ap").textContent=stats.pendingRequests;
+    document.getElementById("ad").textContent=fu(stats.totalUSDTDeposited)+" USDT";
+    document.getElementById("ai").textContent="₹"+fi(stats.totalINRPaid);
+    document.getElementById("ar").value=stats.rate;
+    // KYC breakdown chips
+    if(stats.kyc) {
+      document.getElementById("kyc-chips").innerHTML=`
+        <span class="kyc-chip s">✓ Verified: ${stats.kyc.verified||0}</span>
+        <span class="kyc-chip p">⏳ Submitted: ${stats.kyc.submitted||0}</span>
+        <span class="kyc-chip w">⚠ Pending: ${stats.kyc.pending||0}</span>
+        <span class="kyc-chip r">✕ Rejected: ${stats.kyc.rejected||0}</span>`;
+    }
+    // usersResp is now paginated: { page, pageSize, items }
+    const users = Array.isArray(usersResp) ? usersResp : (usersResp.items || []);
+    renderReqs(reqs);
+    renderUsers(users);
+  } catch(e){console.error("admin load:",e);toast("❌ Failed to load admin data","error");}
+}
+
+function renderReqs(reqs) {
+  const el=document.getElementById("req-list");
+  if(!reqs.length){el.innerHTML='<div class="empty-state"><div class="es-icon">✅</div><div class="es-txt">No pending withdrawal requests</div></div>';return;}
+  el.innerHTML=reqs.map(r=>{
+    const dt=r.createdAt?.seconds?new Date(r.createdAt.seconds*1000).toLocaleString("en-IN",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"—";
+    return`<div class="req-item new"><div style="width:40px;height:40px;border-radius:11px;background:rgba(249,115,22,.1);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">💸</div><div class="req-body"><div class="req-user">${r.name} · <span style="color:var(--text3)">${r.phone||r.email||""}</span></div><div class="req-detail">${fu(r.amountUSDT)} USDT → ₹${fi(r.netINR)} · ${r.bank?.bankName||""} ${r.bank?.masked||""}</div><div style="font-size:10px;color:var(--text3);margin-top:3px">${dt}</div></div><button class="btn btn-xs btn-p" onclick="openReq('${r.id}')">Review →</button></div>`;
+  }).join("");
+}
+
+async function openReq(id) {
+  const token=await S.user.getIdToken();
+  const reqs=await api("GET","/api/admin?action=withdrawals",null,token);
+  const r=reqs.find(x=>x.id===id);if(!r) return;
+  S.activeReq=r;
+  document.getElementById("req-dtbl").innerHTML=`<div class="dtr"><span class="dk">User</span><span class="dv">${r.name}</span></div><div class="dtr"><span class="dk">USDT Amount</span><span class="dv g">${r.amountUSDT} USDT</span></div><div class="dtr"><span class="dk">INR (after fee)</span><span class="dv">₹${fi(r.netINR)}</span></div><div class="dtr"><span class="dk">Bank</span><span class="dv">${r.bank?.bankName}</span></div><div class="dtr"><span class="dk">Account No.</span><span class="dv">${r.bank?.masked}</span></div><div class="dtr"><span class="dk">IFSC</span><span class="dv">${r.bank?.ifsc}</span></div>`;
+  document.getElementById("anote").value="";
+  document.getElementById("req-modal").classList.add("show");
+}
+
+async function approveReq() {
+  const utr = v("autr");
+  if (!utr) return toast("⚠️ UTR number is required to approve", "error");
+  setBtnLoad("app-btn",true);
+  try {
+    const token=await S.user.getIdToken();
+    await api("POST","/api/admin?action=approve&id="+S.activeReq.id,{note:v("anote"),utr},token);
+    closeModal();toast("✅ Approved! UTR: "+utr,"success");loadAdmin(token);
+  } catch(e){toast("❌ "+e.message,"error");}
+  setBtnLoad("app-btn",false,"✓ Approve");
+}
+
+async function rejectReq() {
+  const reason = v("areason");
+  if (!reason) return toast("⚠️ Rejection reason is required", "error");
+  setBtnLoad("rej-btn",true);
+  try {
+    const token=await S.user.getIdToken();
+    await api("POST","/api/admin?action=reject&id="+S.activeReq.id,{note:v("anote"),reason},token);
+    closeModal();toast("❌ Rejected. USDT refunded.","error");loadAdmin(token);
+  } catch(e){toast("❌ "+e.message,"error");}
+  setBtnLoad("rej-btn",false,"✕ Reject");
+}
+
+async function updateRate() {
+  const r=parseFloat(v("ar"));
+  if(!r||r<=0) return toast("⚠️ Enter valid rate","error");
+  try {
+    const token=await S.user.getIdToken();
+    await api("POST","/api/rates",{inr:r},token);
+    S.rate.inr=r;
+    document.getElementById("live-rate").textContent=r.toFixed(2);
+    document.getElementById("dep-rate").textContent=r.toFixed(2);
+    document.getElementById("wit-rate").textContent=r.toFixed(2);
+    toast("📈 Rate updated to ₹"+r.toFixed(2)+"/USDT","success");
+  } catch(e){toast("❌ "+e.message,"error");}
+}
+
+function renderUsers(users) {
+  document.getElementById("utbody").innerHTML=users.map(u=>`
+    <tr>
+      <td><strong>${u.name||"—"}</strong></td>
+      <td style="font-size:11px">${u.email||u.phone||"—"}</td>
+      <td>${kycTag(u.kycStatus)}</td>
+      <td style="font-family:'IBM Plex Mono',monospace;color:var(--accent)">${fu(u.balance||u.walletBalance||0)} USDT</td>
+      <td style="font-family:'IBM Plex Mono',monospace">${fu(u.totalDeposited||0)} USDT</td>
+      <td style="color:var(--text3);font-size:11px">${u.createdAt?.seconds?new Date(u.createdAt.seconds*1000).toLocaleDateString("en-IN"):"—"}</td>
+      <td><button class="btn btn-xs btn-p" onclick="quickEditBalance('${u.uid||u.id}','${(u.name||u.email||"User").replace(/'/g,"\'")}',${fu(u.balance||0)})">✏️</button></td>
+    </tr>`).join("");
+}
+
+function quickEditBalance(uid, name, bal) {
+  openEditBal(uid, name, bal);
+}
+
+let _balAction = "add";
+function balTab(tab) {
+  _balAction = tab;
+  document.getElementById("bal-add-tab").className = "btn btn-sm " + (tab==="add"?"btn-p":"btn-o");
+  document.getElementById("bal-rem-tab").className = "btn btn-sm " + (tab==="remove"?"btn-d":"btn-o");
+  document.getElementById("bal-amt-label").textContent = tab==="add" ? "Amount to Add (USDT)" : "Amount to Remove (USDT)";
+  document.getElementById("bal-submit-btn").textContent = tab==="add" ? "✅ Add Balance" : "✅ Remove Balance";
+  document.getElementById("bal-amt").value = "";
+}
+
+async function submitBalance() {
+  const uid = v("bal-uid");
+  const amt = parseFloat(document.getElementById("bal-amt").value);
+  const note = v("bal-note");
+  if (!uid) return toast("⚠️ No user selected", "error");
+  if (isNaN(amt) || amt <= 0) return toast("⚠️ Enter valid amount", "error");
+  try {
+    const token = await S.user.getIdToken();
+    const action = _balAction === "add" ? "add-balance" : "remove-balance";
+    await api("POST", `/api/admin?action=${action}&uid=${uid}`, { amount: amt, note }, token);
+    document.getElementById("edit-bal-form").style.display = "none";
+    document.getElementById("bal-note").value = "";
+    document.getElementById("bal-amt").value = "";
+    toast(_balAction==="add" ? `✅ Added ${fu(amt)} USDT to user!` : `✅ Removed ${fu(amt)} USDT from user!`, "success");
+    loadBalanceUsers();
+  } catch(e) { toast("❌ " + e.message, "error"); }
+}
+
+async function loadBalanceUsers() {
+  const el = document.getElementById("bal-users-list");
+  el.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:20px;text-align:center">Loading...</div>';
+  try {
+    const token = await S.user.getIdToken();
+    const resp = await api("GET", "/api/admin?action=users-with-wallets", null, token);
+    // Handle paginated response
+    const users = Array.isArray(resp) ? resp : (resp.items || []);
+    if (!users.length) { el.innerHTML='<div class="empty-state"><div class="es-icon">👥</div><div class="es-txt">No users yet</div></div>'; return; }
+    el.innerHTML = `
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;padding:10px 14px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3)">
+          <span>User</span><span>Email</span><span>Balance</span><span>Action</span>
+        </div>
+        ${users.map(u=>`
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.04);align-items:center">
+          <div style="font-size:13px;font-weight:600">${u.name||"—"}</div>
+          <div style="font-size:11px;color:var(--text3)">${u.email||"—"}</div>
+          <div style="font-family:'IBM Plex Mono',monospace;color:var(--accent);font-size:13px;font-weight:700">${fu(u.balance||0)} USDT</div>
+          <button class="btn btn-xs btn-p" onclick="openEditBal('${u.uid||u.id}','${(u.name||u.email||"User").replace(/'/g,"\'")}',${fu(u.balance||0)})">✏️ Edit</button>
+        </div>`).join("")}
+      </div>`;
+  } catch(e) { el.innerHTML='<div style="color:var(--danger);padding:20px;text-align:center">Error loading users</div>'; console.error(e); }
+}
+
+function openEditBal(uid, name, currentBal) {
+  document.getElementById("bal-uid").value = uid;
+  document.getElementById("bal-amt").value = currentBal;
+  document.getElementById("edit-bal-name").textContent = name + " — Current: " + currentBal + " USDT";
+  document.getElementById("edit-bal-form").style.display = "flex";
+}
+
+async function loadAdminKYC() {
+  try {
+    const token = await S.user.getIdToken();
+    const resp = await api("GET", "/api/admin?action=kyc-list", null, token);
+    // Handle paginated response
+    const kycs = Array.isArray(resp) ? resp : (resp.items || []);
+    const el = document.getElementById("kyc-list");
+    if (!kycs.length) { el.innerHTML = '<div class="empty-state"><div class="es-icon">🪪</div><div class="es-txt">No KYC submissions yet</div></div>'; return; }
+    el.innerHTML = kycs.map(k => `
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:15px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+          <div>
+            <div style="font-size:13px;font-weight:700">${k.firstName||""} ${k.lastName||""}</div>
+            <div style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace">${k.email||""} · UID: ${k.uid}</div>
+          </div>
+          ${kycTag(k.status)}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
+          <div style="background:var(--surface2);border-radius:8px;padding:8px">
+            <div style="font-size:9px;color:var(--text3);margin-bottom:2px">PAN</div>
+            <div style="font-size:12px;font-family:'IBM Plex Mono',monospace">${k.pan||"—"}</div>
+          </div>
+          <div style="background:var(--surface2);border-radius:8px;padding:8px">
+            <div style="font-size:9px;color:var(--text3);margin-bottom:2px">DOB</div>
+            <div style="font-size:12px;font-family:'IBM Plex Mono',monospace">${k.dob||"—"}</div>
+          </div>
+          <div style="background:var(--surface2);border-radius:8px;padding:8px">
+            <div style="font-size:9px;color:var(--text3);margin-bottom:2px">AADHAAR</div>
+            <div style="font-size:12px;font-family:'IBM Plex Mono',monospace">${k.aadhaar||"—"}</div>
+          </div>
+        </div>
+        ${k.status !== "verified" ? `
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-xs btn-p" onclick="adminKYCAction('${k.uid}','approve')">✓ Verify</button>
+          <button class="btn btn-xs btn-d" onclick="adminKYCAction('${k.uid}','reject')">✕ Reject</button>
+        </div>` : '<div style="color:var(--accent);font-size:12px">✓ Already verified</div>'}
+      </div>`).join("");
+  } catch(e) { toast("❌ " + e.message, "error"); }
+}
+
+async function adminKYCAction(uid, action) {
+  let body = {};
+  if (action === "reject") {
+    const reason = prompt("Enter rejection reason (required):");
+    if (!reason?.trim()) return toast("⚠️ Rejection reason required", "error");
+    body.reason = reason.trim();
+  }
+  try {
+    const token = await S.user.getIdToken();
+    await api("POST", `/api/admin?action=kyc-${action}&uid=${uid}`, body, token);
+    toast(action === "approve" ? "✅ KYC Verified!" : "❌ KYC Rejected", action === "approve" ? "success" : "error");
+    loadAdminKYC();
+  } catch(e) { toast("❌ " + e.message, "error"); }
+}
+
+function adminTab(tab, btn) {
+  ["withdrawals","kyc","balances"].forEach(t => {
+    document.getElementById("atab-"+t).style.display = t===tab ? "block" : "none";
+  });
+  document.querySelectorAll("#panel-admin .btn-sm").forEach(b => b.className = "btn btn-sm btn-o");
+  if (btn) btn.className = "btn btn-sm btn-p";
+  if (tab === "kyc") loadAdminKYC();
+  if (tab === "balances") loadBalanceUsers();
+}
+
+async function logout() {
+  if(S.walletUnsub) S.walletUnsub();
+  await fbAuth.signOut();
+  S={user:null,profile:null,wallet:null,rate:null,bank:null,isAdmin:false,activeReq:null,walletUnsub:null};
+  document.getElementById('app-screen').classList.remove('active');
+  document.getElementById('login-screen').classList.add('active');
+  document.getElementById('ls1').style.display='block';
+  document.getElementById('ls2').style.display='none';
+  toast("👋 Logged out","success");
+}
+
+async function api(method,path,body,token) {
+  const h={"Content-Type":"application/json"};
+  if(token) h["Authorization"]="Bearer "+token;
+  const opts={method,headers:h};
+  if(body&&method!=="GET") opts.body=JSON.stringify(body);
+  const r=await fetch(API+path,opts);
+  const j=await r.json();
+  if(!r.ok) throw new Error(j.error||"Request failed");
+  return j;
+}
+
+function fu(n){return parseFloat(n||0).toFixed(2);}
+function fi(n){return parseFloat(n||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function v(id){return document.getElementById(id)?.value?.trim()||"";}
+function show(id){document.getElementById(id).classList.add("active");}
+function hide(id){const el=document.getElementById(id);if(el)el.classList.remove("active");}
+function setLoader(msg){document.getElementById("loader-msg").textContent=msg;document.getElementById("loader").style.display="flex";}
+function copyAddr(){
+  const txt=document.getElementById("dep-addr").textContent;
+  navigator.clipboard?.writeText(txt).then(()=>{
+    const btn=document.querySelector(".copy-btn");
+    if(btn){btn.textContent="✓ Copied";btn.classList.add("copied");setTimeout(()=>{btn.textContent="📋 Copy";btn.classList.remove("copied");},2000);}
+    toast("📋 Address copied!","success");
+  }).catch(()=>{toast("❌ Copy failed","error");});
+}
+function closeModal(){document.getElementById("req-modal").classList.remove("show");}
+function startRatePoll(){setInterval(async()=>{try{const r=await api("GET","/api/rates");S.rate=r;document.getElementById("live-rate").textContent=r.inr.toFixed(2);document.getElementById("dep-rate").textContent=r.inr.toFixed(2);document.getElementById("wit-rate").textContent=r.inr.toFixed(2);document.getElementById("kr").textContent="₹"+r.inr.toFixed(2);}catch{}},30000);}
+function kycTag(s){const m={verified:'<span class="tag s">✓ Verified</span>',submitted:'<span class="tag i">⏳ Under Review</span>',pending:'<span class="tag p">⚠ Pending</span>',rejected:'<span class="tag f">✕ Rejected</span>'};return m[s]||m.pending;}
+function setBtnLoad(id,loading,label){const b=document.getElementById(id);if(!b)return;b.disabled=loading;b.innerHTML=loading?'<span class="spinner"></span>':(label||b.textContent);}
+// ── AUTO-REFRESH FUNCTIONS ──────────────────────────────────
+async function refreshDashboard() {
+  try {
+    const token = await S.user.getIdToken();
+    const [wallet, profile] = await Promise.all([
+      api("GET", "/api/wallet", null, token),
+      api("GET", "/api/auth", null, token),
+    ]);
+    S.wallet = wallet; S.profile = profile; S.bank = profile.bank || null;
+    updateWalletUI();
+    loadRecentTx();
+  } catch(e) { console.warn("Dashboard refresh:", e); }
+}
+
+async function refreshWithdraw() {
+  try {
+    const token = await S.user.getIdToken();
+    const [wallet, profile] = await Promise.all([
+      api("GET", "/api/wallet", null, token),
+      api("GET", "/api/auth", null, token),
+    ]);
+    S.wallet = wallet; S.profile = profile; S.bank = profile.bank || null;
+    updateWalletUI();
+    // Re-render withdraw panel with latest KYC & balance
+    const p = document.getElementById("panel-withdraw");
+    if (p) populateWithdraw();
+  } catch(e) { console.warn("Withdraw refresh:", e); }
+}
+
+async function loadKYC() {
+  try {
+    const token = await S.user.getIdToken();
+    const profile = await api("GET", "/api/auth", null, token);
+    S.profile = { ...S.profile, ...profile };
+    loadKYCPanel(S.profile);
+    document.getElementById("kkyc").innerHTML = kycTag(S.profile.kycStatus);
+  } catch(e) { console.warn("KYC refresh:", e); }
+}
+
+async function refreshDeposit() {
+  try {
+    const token = await S.user.getIdToken();
+    const wallet = await api("GET", "/api/wallet", null, token);
+    S.wallet = wallet;
+    updateWalletUI();
+  } catch(e) { console.warn("Deposit refresh:", e); }
+}
+
+function populateWithdraw() {
+  const p = S.profile || {};
+  // Update KYC warning if shown
+  const kycEl = document.getElementById("kkyc");
+  if (kycEl) kycEl.innerHTML = kycTag(p.kycStatus);
+}
+
+// ── Input auto-formatters ─────────────────────────────────────
+function setupInputFormatters() {
+  // PAN: auto uppercase
+  document.querySelectorAll("#kpan,#kpan2").forEach(el => {
+    if (el) el.addEventListener("input", () => { el.value = el.value.toUpperCase(); });
+  });
+  // Aadhaar: auto-space every 4 digits
+  document.querySelectorAll("#kaadh,#kaadh2").forEach(el => {
+    if (!el) return;
+    el.addEventListener("input", () => {
+      const raw = el.value.replace(/\D/g, "").slice(0, 12);
+      el.value = raw.replace(/(\d{4})(?=\d)/g, "$1 ");
+    });
+  });
+  // IFSC: auto uppercase
+  const ifscEl = document.getElementById("bf-i");
+  if (ifscEl) ifscEl.addEventListener("input", () => { ifscEl.value = ifscEl.value.toUpperCase(); });
+}
+setupInputFormatters();
+
+// ── Skeleton loader helpers ───────────────────────────────────
+function skelBox(h="18px",w="100%",mb="0"){return`<div class="skel" style="height:${h};width:${w};margin-bottom:${mb}"></div>`;}
+
+function renderTxSkeleton(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = [1,2,3].map(()=>`
+    <div style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:13px 15px">
+      ${skelBox("38px","38px")}
+      <div style="flex:1">${skelBox("13px","60%","6px")}${skelBox("11px","40%")}</div>
+      <div style="text-align:right">${skelBox("13px","80px","4px")}${skelBox("10px","60px")}</div>
+    </div>`).join("");
+}
+
+function gp(name,el){
+  document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".ni").forEach(n=>n.classList.remove("active"));
+  document.getElementById("panel-"+name)?.classList.add("active");
+  if(el)el.classList.add("active");
+  const t={dashboard:"Dashboard",deposit:"Deposit USDT",withdraw:"Withdraw INR",history:"Transaction History",kyc:"KYC Status",profile:"Profile",admin:"Admin Panel",users:"All Users"};
+  document.getElementById("ptitle").textContent=t[name]||name;
+  // Auto-refresh data when switching panels
+  if(name==="dashboard")   refreshDashboard();
+  if(name==="kyc")         loadKYC();
+  if(name==="withdraw")    refreshWithdraw();
+  if(name==="history")     loadHistory("all",null);
+  if(name==="admin"&&S.isAdmin) loadAdmin();
+  if(name==="users"&&S.isAdmin) loadAllUsers?.();
+  if(name==="deposit")     refreshDeposit();
+}
+function gpm(name,el){gp(name,null);document.querySelectorAll(".mni").forEach(m=>m.classList.remove("active"));el.classList.add("active");}
+document.getElementById("req-modal").addEventListener("click",e=>{if(e.target===document.getElementById("req-modal"))closeModal();});
+let toastT;
+function toast(msg,type="success"){const t=document.getElementById("toast");t.textContent=msg;t.className="toast "+type+" show";clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),3500);}
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "outputDirectory": "public",
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/check-deposits",
+      "schedule": "0 * * * *"
+    }
+  ]
+}
