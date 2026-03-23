@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CryptoKash — USDT to INR</title>
+<title>ZAP-CASH — USDT to INR</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -202,17 +202,17 @@ input::placeholder{color:var(--text3);}
 
 <div id="loader">
   <div class="ring"></div>
-  <h2>CryptoKash</h2>
+  <h2>ZAP-CASH</h2>
   <p id="loader-msg">Initialising...</p>
 </div>
 
 <div id="login-screen" class="screen">
   <div class="login-wrap">
-    <div class="brand"><h1>CryptoKash</h1><p>USDT → INR · Instant Exchange</p></div>
+    <div class="brand"><h1>ZAP-CASH</h1><p>USDT → INR · Instant Exchange</p></div>
     <!-- SIGN IN CARD -->
     <div class="lcard" id="ls1">
       <h2>Welcome back 👋</h2>
-      <p class="sub">Sign in to your CryptoKash account</p>
+      <p class="sub">Sign in to your ZAP-CASH account</p>
       <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="you@email.com"></div>
       <div class="field" style="margin-bottom:6px"><label>Password</label>
         <div style="position:relative">
@@ -237,7 +237,7 @@ input::placeholder{color:var(--text3);}
     <!-- SIGN UP CARD -->
     <div class="lcard" id="ls-signup" style="display:none">
       <h2>Create Account 🚀</h2>
-      <p class="sub">Join CryptoKash and start exchanging USDT to INR</p>
+      <p class="sub">Join ZAP-CASH and start exchanging USDT to INR</p>
       <div class="field"><label>Full Name</label><input type="text" id="reg-name" placeholder="Your full name"></div>
       <div class="field"><label>Email</label><input type="email" id="reg-email" placeholder="you@email.com"></div>
       <div class="field" style="margin-bottom:6px"><label>Password</label>
@@ -295,7 +295,7 @@ input::placeholder{color:var(--text3);}
 <div id="app-screen" class="screen">
   <div class="app-layout">
     <aside class="sidebar">
-      <div class="s-brand"><div class="s-logo">₭</div><span>CryptoKash</span></div>
+      <div class="s-brand"><div class="s-logo">₭</div><span>ZAP-CASH</span></div>
       <div class="nav-sec">Main</div>
       <div class="ni active" onclick="gp('dashboard',this)"><span class="ni-icon">🏠</span>Dashboard</div>
       <div class="ni" onclick="gp('deposit',this)"><span class="ni-icon">⬇</span>Deposit USDT</div>
@@ -701,7 +701,7 @@ async function checkEmailVerified() {
   try {
     await S.user.reload();
     if (S.user.emailVerified) {
-      toast("✅ Email verified! Welcome to CryptoKash!", "success");
+      toast("✅ Email verified! Welcome to ZAP-CASH!", "success");
       document.getElementById("login-screen").style.display = "none";
       document.getElementById("loader").style.display = "flex";
       document.getElementById("loader-msg").textContent = "Setting up your account...";
@@ -1365,11 +1365,21 @@ async function logout() {
 }
 
 async function api(method,path,body,token) {
-  const h={"Content-Type":"application/json"};
-  if(token) h["Authorization"]="Bearer "+token;
-  const opts={method,headers:h};
-  if(body&&method!=="GET") opts.body=JSON.stringify(body);
-  const r=await fetch(API+path,opts);
+  const makeReq = async (tok) => {
+    const h={"Content-Type":"application/json"};
+    if(tok) h["Authorization"]="Bearer "+tok;
+    const opts={method,headers:h};
+    if(body&&method!=="GET") opts.body=JSON.stringify(body);
+    return fetch(API+path,opts);
+  };
+  let r=await makeReq(token);
+  // Auto-retry once with a force-refreshed token on 401 (expired token)
+  if(r.status===401 && S.user && token) {
+    try {
+      const fresh=await S.user.getIdToken(true);
+      r=await makeReq(fresh);
+    } catch(_) {}
+  }
   const j=await r.json();
   if(!r.ok) throw new Error(j.error||"Request failed");
   return j;
