@@ -7,7 +7,6 @@
 
 const { admin, db } = require("../lib/firebase");
 const { verifyToken, handle } = require("../lib/middleware");
-const { DEFAULT_RATE } = require("../lib/constants");
 const Joi = require("joi");
 const crypto = require("crypto");
 
@@ -103,6 +102,6 @@ module.exports = handle(async (req, res) => {
 
 function generateDepositAddress(uid) {
   // ⚠️ Replace with real HD wallet derivation in production (see README)
-  const hash = crypto.createHash("sha256").update("cryptokash-" + uid).digest("hex");
+  const hash = crypto.createHash("sha256").update("zapcash-" + uid).digest("hex");
   return "T" + hash.slice(0, 33).toUpperCase();
 }

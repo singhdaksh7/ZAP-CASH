@@ -1487,6 +1487,23 @@ function renderTxSkeleton(id) {
     </div>`).join("");
 }
 
+async function loadAllUsers() {
+  const el = document.getElementById("utbody");
+  if (!el) return;
+  el.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">Loading...</td></tr>';
+  try {
+    const token = await S.user.getIdToken();
+    const resp = await api("GET", "/api/admin?action=users-with-wallets", null, token);
+    const users = Array.isArray(resp) ? resp : (resp.items || []);
+    if (!users.length) {
+      el.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">No users yet</td></tr>';
+      return;
+    }
+    renderUsers(users);
+  } catch(e) {
+    el.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--danger)">Error: ' + e.message + '</td></tr>';
+  }
+}
 function gp(name,el){
   document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
   document.querySelectorAll(".ni").forEach(n=>n.classList.remove("active"));
