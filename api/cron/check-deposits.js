@@ -1,138 +1,127 @@
 /**
  * api/cron/check-deposits.js
- * Vercel Cron Job — runs every 2 minutes (set in vercel.json).
- *
- * Scans every user's TRC-20 deposit address for new USDT transfers
- * using the TronGrid REST API, then atomically credits confirmed
- * deposits to each user's Firestore wallet.
- *
- * Required env vars:
- *   TRONGRID_API_KEY  → free key from https://www.trongrid.io
- *   CRON_SECRET       → a random string you set, keeps endpoint private
+ * Runs every hour via Vercel Cron
+ * Checks master TRC-20 wallet for incoming USDT, matches by Payment ID memo
  */
 
 const { admin, db } = require("../../lib/firebase");
-const { USDT_CONTRACT, TRONGRID_BASE, DEFAULT_RATE } = require("../../lib/constants");
-const axios = require("axios");
 
-module.exports = async function handler(req, res) {
-  // Security: Vercel calls crons with Authorization: Bearer <CRON_SECRET>
-  const secret = req.headers.authorization?.replace("Bearer ", "");
-  if (secret !== process.env.CRON_SECRET) {
+const MASTER_ADDRESS  = "TKndaoEv14h3h9m6LWKXhkDe37w54jfmEz";
+const TRONGRID_KEY    = process.env.TRONGRID_API_KEY || "";
+const CRON_SECRET     = process.env.CRON_SECRET || "";
+const USDT_CONTRACT   = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"; // TRC-20 USDT
+const MIN_DEPOSIT     = 10;
+
+module.exports = async (req, res) => {
+  if (req.headers["x-cron-secret"] !== CRON_SECRET && req.query.secret !== CRON_SECRET) {
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  console.log("[cron] Starting deposit check at", new Date().toISOString());
-
   try {
-    const addrSnap = await db.collection("addresses").get();
-    if (addrSnap.empty) return res.json({ ok: true, checked: 0, credited: 0 });
+    // Fetch recent TRC-20 USDT transfers to master address
+    const url = `https://api.trongrid.io/v1/accounts/${MASTER_ADDRESS}/transactions/trc20?limit=50&contract_address=${USDT_CONTRACT}&only_to=true`;
+    const resp = await fetch(url, { headers: { "TRON-PRO-API-KEY": TRONGRID_KEY } });
+    const data = await resp.json();
 
-    const apiKey  = process.env.TRONGRID_API_KEY || "";
-    const headers = apiKey ? { "TRON-PRO-API-KEY": apiKey } : {};
-    let credited  = 0;
-    let errors    = 0;
-
-    for (const doc of addrSnap.docs) {
-      const { uid, address } = doc.data();
-      if (!address) continue;
-
-      try {
-        credited += await processAddress(uid, address, headers);
-      } catch (err) {
-        errors++;
-        console.error(`[cron] Error for uid=${uid} addr=${address}:`, err.message);
-      }
-
-      await sleep(300); // be polite to TronGrid rate limits
+    if (!data.data || !Array.isArray(data.data)) {
+      return res.json({ ok: true, processed: 0, message: "No transactions found" });
     }
 
-    console.log(`[cron] Done. Checked ${addrSnap.size}, credited ${credited} deposit(s), errors ${errors}.`);
-    res.json({ ok: true, checked: addrSnap.size, credited, errors });
+    // Load all payment IDs from Firestore for matching
+    const walletsSnap = await db.collection("wallets").get();
+    const paymentMap = {}; // paymentId → uid
+    walletsSnap.forEach(d => {
+      const pid = d.data().paymentId;
+      if (pid) paymentMap[pid.toUpperCase()] = d.id;
+    });
 
-  } catch (err) {
-    console.error("[cron] Fatal error:", err);
-    res.status(500).json({ error: err.message });
+    let processed = 0, credited = 0, errors = 0;
+
+    for (const tx of data.data) {
+      processed++;
+      try {
+        const txHash     = tx.transaction_id;
+        const amountRaw  = parseInt(tx.value || "0");
+        const amountUSDT = amountRaw / 1_000_000; // USDT has 6 decimals
+        const memo       = (tx.data || "").toUpperCase().trim();
+
+        // Skip if below minimum
+        if (amountUSDT < MIN_DEPOSIT) continue;
+
+        // Try to match Payment ID from memo
+        // Memo format: ZAP-00001 or ZAP00001 or just 00001
+        let matchedUid = null;
+        let matchedPid = null;
+
+        // Direct match
+        if (paymentMap[memo]) {
+          matchedUid = paymentMap[memo];
+          matchedPid = memo;
+        } else {
+          // Try with ZAP- prefix
+          const withPrefix = "ZAP-" + memo.replace(/[^0-9]/g, "").padStart(5, "0");
+          if (paymentMap[withPrefix]) {
+            matchedUid = paymentMap[withPrefix];
+            matchedPid = withPrefix;
+          }
+        }
+
+        if (!matchedUid) {
+          // Unmatched deposit — log it for manual review
+          await db.collection("unmatchedDeposits").add({
+            txHash, amountUSDT, memo,
+            toAddress: MASTER_ADDRESS,
+            timestamp: admin.firestore.FieldValue.serverTimestamp(),
+            status: "unmatched",
+          });
+          continue;
+        }
+
+        // Check if already processed
+        const existingSnap = await db.collection("transactions")
+          .where("txHash", "==", txHash).limit(1).get();
+        if (!existingSnap.empty) continue;
+
+        // Credit user wallet in a transaction
+        await db.runTransaction(async (t) => {
+          const walletRef = db.collection("wallets").doc(matchedUid);
+          const walletSnap = await t.get(walletRef);
+          if (!walletSnap.exists) throw new Error("Wallet not found");
+
+          t.update(walletRef, {
+            balance:        admin.firestore.FieldValue.increment(amountUSDT),
+            totalDeposited: admin.firestore.FieldValue.increment(amountUSDT),
+            updatedAt:      admin.firestore.FieldValue.serverTimestamp(),
+          });
+
+          const txRef = db.collection("transactions").doc();
+          t.set(txRef, {
+            id:         txRef.id,
+            uid:        matchedUid,
+            type:       "deposit",
+            amountUSDT,
+            txHash,
+            paymentId:  matchedPid,
+            status:     "confirmed",
+            network:    "TRC-20",
+            toAddress:  MASTER_ADDRESS,
+            createdAt:  admin.firestore.FieldValue.serverTimestamp(),
+          });
+        });
+
+        credited++;
+        console.log(`✅ Credited ${amountUSDT} USDT to ${matchedUid} (${matchedPid}) tx: ${txHash}`);
+
+      } catch(e) {
+        errors++;
+        console.error("Error processing tx:", e.message);
+      }
+    }
+
+    return res.json({ ok: true, processed, credited, errors });
+
+  } catch(e) {
+    console.error("Cron error:", e);
+    return res.status(500).json({ error: e.message });
   }
 };
-
-async function processAddress(uid, address, headers) {
-  const stateRef  = db.collection("depositState").doc(uid);
-  const stateSnap = await stateRef.get();
-  const lastTs    = stateSnap.exists ? stateSnap.data().lastTxTimestamp : 0;
-
-  const url  = `${TRONGRID_BASE}/v1/accounts/${address}/transactions/trc20`;
-  const resp = await axios.get(url, {
-    headers,
-    params: {
-      contract_address: USDT_CONTRACT,
-      only_to:          true,
-      limit:            20,
-      min_timestamp:    lastTs + 1,
-    },
-    timeout: 10_000,
-  });
-
-  const transfers = resp.data?.data || [];
-  if (!transfers.length) return 0;
-
-  let latestTs = lastTs;
-  let credited = 0;
-
-  for (const tx of transfers) {
-    const txHash     = tx.transaction_id;
-    const amountUSDT = parseInt(tx.value || "0", 10) / 1_000_000; // 6 decimals
-    const ts         = tx.block_timestamp;
-
-    if (ts > latestTs) latestTs = ts;
-    if (amountUSDT < 1) continue; // ignore dust
-
-    // Idempotency check
-    const existing = await db.collection("transactions")
-      .where("txHash", "==", txHash)
-      .limit(1)
-      .get();
-    if (!existing.empty) continue;
-
-    await creditDeposit(uid, txHash, amountUSDT, ts);
-    credited++;
-  }
-
-  await stateRef.set({ lastTxTimestamp: latestTs }, { merge: true });
-  return credited;
-}
-
-async function creditDeposit(uid, txHash, amountUSDT, blockTimestamp) {
-  const rateSnap = await db.collection("config").doc("rate").get();
-  const rate     = rateSnap.exists ? rateSnap.data().inr : DEFAULT_RATE;
-
-  await db.runTransaction(async (t) => {
-    const walletRef = db.collection("wallets").doc(uid);
-    const txRef     = db.collection("transactions").doc();
-
-    t.update(walletRef, {
-      balance:        admin.firestore.FieldValue.increment(amountUSDT),
-      totalDeposited: admin.firestore.FieldValue.increment(amountUSDT),
-      updatedAt:      admin.firestore.FieldValue.serverTimestamp(),
-    });
-
-    t.set(txRef, {
-      id:             txRef.id,
-      uid,
-      type:           "deposit",
-      amountUSDT,
-      inrValue:       +(amountUSDT * rate).toFixed(2),
-      txHash,
-      blockTimestamp,
-      status:         "confirmed",
-      network:        "TRC-20",
-      createdAt:      admin.firestore.FieldValue.serverTimestamp(),
-    });
-  });
-
-  console.log(`[cron] Credited ${amountUSDT} USDT to uid=${uid} tx=${txHash}`);
-}
-
-function sleep(ms) {
-  return new Promise((r) => setTimeout(r, ms));
-}

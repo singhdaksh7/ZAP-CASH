@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ZAP-CASH — USDT to INR</title>
+<title>CryptoKash — USDT to INR</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
@@ -176,24 +176,6 @@ input::placeholder{color:var(--text3);}
 ::-webkit-scrollbar{width:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
-/* ── Skeleton loader ───────────────────────────────────────── */
-@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
-.skel{border-radius:8px;background:linear-gradient(90deg,var(--border) 25%,var(--border2) 50%,var(--border) 75%);background-size:800px 100%;animation:shimmer 1.4s infinite linear;}
-/* ── Empty state ────────────────────────────────────────────── */
-.empty-state{text-align:center;padding:36px 20px;color:var(--text3);}
-.empty-state .es-icon{font-size:36px;margin-bottom:10px;}
-.empty-state .es-txt{font-size:13px;line-height:1.6;}
-/* ── Retry button ───────────────────────────────────────────── */
-.retry-btn{margin-top:12px;background:transparent;border:1px solid var(--border2);border-radius:8px;padding:7px 16px;color:var(--text2);font-size:12px;cursor:pointer;font-family:'Outfit',sans-serif;}
-.retry-btn:hover{border-color:var(--accent);color:var(--accent);}
-/* ── Copy feedback ──────────────────────────────────────────── */
-.copy-btn.copied{background:rgba(0,240,160,.2);border-color:var(--accent);color:var(--accent);}
-/* ── KYC stat chips ─────────────────────────────────────────── */
-.kyc-chip{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:100px;font-size:10px;font-weight:700;}
-.kyc-chip.s{background:rgba(0,240,160,.1);color:var(--accent);}
-.kyc-chip.p{background:rgba(14,165,233,.1);color:var(--accent2);}
-.kyc-chip.w{background:rgba(251,191,36,.1);color:var(--gold);}
-.kyc-chip.r{background:rgba(239,68,68,.1);color:var(--danger);}
 </style>
 </head>
 <body>
@@ -202,17 +184,17 @@ input::placeholder{color:var(--text3);}
 
 <div id="loader">
   <div class="ring"></div>
-  <h2>ZAP-CASH</h2>
+  <h2>CryptoKash</h2>
   <p id="loader-msg">Initialising...</p>
 </div>
 
 <div id="login-screen" class="screen">
   <div class="login-wrap">
-    <div class="brand"><h1>ZAP-CASH</h1><p>USDT → INR · Instant Exchange</p></div>
+    <div class="brand"><h1>CryptoKash</h1><p>USDT → INR · Instant Exchange</p></div>
     <!-- SIGN IN CARD -->
     <div class="lcard" id="ls1">
       <h2>Welcome back 👋</h2>
-      <p class="sub">Sign in to your ZAP-CASH account</p>
+      <p class="sub">Sign in to your CryptoKash account</p>
       <div class="field"><label>Email</label><input type="email" id="login-email" placeholder="you@email.com"></div>
       <div class="field" style="margin-bottom:6px"><label>Password</label>
         <div style="position:relative">
@@ -237,7 +219,7 @@ input::placeholder{color:var(--text3);}
     <!-- SIGN UP CARD -->
     <div class="lcard" id="ls-signup" style="display:none">
       <h2>Create Account 🚀</h2>
-      <p class="sub">Join ZAP-CASH and start exchanging USDT to INR</p>
+      <p class="sub">Join CryptoKash and start exchanging USDT to INR</p>
       <div class="field"><label>Full Name</label><input type="text" id="reg-name" placeholder="Your full name"></div>
       <div class="field"><label>Email</label><input type="email" id="reg-email" placeholder="you@email.com"></div>
       <div class="field" style="margin-bottom:6px"><label>Password</label>
@@ -295,7 +277,7 @@ input::placeholder{color:var(--text3);}
 <div id="app-screen" class="screen">
   <div class="app-layout">
     <aside class="sidebar">
-      <div class="s-brand"><div class="s-logo">₭</div><span>ZAP-CASH</span></div>
+      <div class="s-brand"><div class="s-logo">₭</div><span>CryptoKash</span></div>
       <div class="nav-sec">Main</div>
       <div class="ni active" onclick="gp('dashboard',this)"><span class="ni-icon">🏠</span>Dashboard</div>
       <div class="ni" onclick="gp('deposit',this)"><span class="ni-icon">⬇</span>Deposit USDT</div>
@@ -354,17 +336,32 @@ input::placeholder{color:var(--text3);}
         </div>
         <div class="panel" id="panel-deposit">
           <div class="rate-bar"><div><div class="rlbl">Deposit Rate</div><div class="rval">₹<span id="dep-rate">—</span></div></div><span style="background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.2);color:var(--gold);border-radius:6px;padding:4px 10px;font-size:11px;font-weight:600">⚡ TRC-20 Only</span></div>
+          <div style="background:linear-gradient(135deg,#0a2040,#081830);border:1px solid rgba(0,240,160,.3);border-radius:18px;padding:22px;margin-bottom:14px">
+            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--accent);margin-bottom:8px">Your Unique Payment ID</div>
+            <div style="font-size:36px;font-weight:800;font-family:'IBM Plex Mono',monospace;color:#fff;letter-spacing:3px" id="dep-pid">—</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:6px;line-height:1.5">You <strong style="color:var(--danger)">MUST</strong> include this in the Memo/Tag when sending USDT</div>
+            <button class="copy-btn" style="margin-top:12px" onclick="copyPid()">📋 Copy Payment ID</button>
+          </div>
           <div class="card" style="margin-bottom:14px">
-            <div style="font-size:14px;font-weight:700;margin-bottom:12px">Your USDT Deposit Address</div>
-            <p style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6">Send <strong>USDT TRC-20</strong> to this address only. Minimum 10 USDT.</p>
+            <div style="font-size:14px;font-weight:700;margin-bottom:12px">Master Deposit Address</div>
+            <p style="font-size:13px;color:var(--text2);margin-bottom:12px;line-height:1.6">Send <strong>USDT TRC-20</strong> to this address. Include your Payment ID in the memo so we can match your transfer.</p>
             <div class="addr-box">
               <div class="addr-txt" id="dep-addr">Loading...</div>
               <button class="copy-btn" onclick="copyAddr()">📋 Copy</button>
             </div>
           </div>
+          <div class="card" style="margin-bottom:14px;border-color:rgba(249,115,22,.3)">
+            <div style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--warn)">📋 How to Deposit</div>
+            <div style="font-size:13px;color:var(--text2);line-height:2">
+              <div style="display:flex;gap:10px;align-items:center;margin-bottom:4px"><span style="background:var(--accent);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0">1</span><span>Copy the <strong>Master Address</strong> above</span></div>
+              <div style="display:flex;gap:10px;align-items:center;margin-bottom:4px"><span style="background:var(--accent);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0">2</span><span>Open your wallet (Binance, TronLink, etc.)</span></div>
+              <div style="display:flex;gap:10px;align-items:center;margin-bottom:4px"><span style="background:var(--accent);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0">3</span><span>Send min <strong>10 USDT</strong> on TRC-20 network</span></div>
+              <div style="display:flex;gap:10px;align-items:center"><span style="background:var(--danger);color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0">!</span><span>In <strong>Memo / Tag / Note</strong> field enter: <strong id="dep-pid2" style="color:var(--accent)">—</strong></span></div>
+            </div>
+          </div>
           <div class="card">
             <div style="font-size:13px;font-weight:700;margin-bottom:8px">⚠️ Important</div>
-            <p style="font-size:13px;color:var(--text2);line-height:1.7">• Only send <strong>USDT on TRC-20</strong> (Tron) network<br>• Minimum deposit: <strong>10 USDT</strong><br>• Sending other tokens = permanent loss<br>• Credits after 20 block confirmations (~1–5 min)</p>
+            <p style="font-size:13px;color:var(--text2);line-height:1.7">• Only send <strong>USDT on TRC-20</strong> (Tron) network<br>• Always include your <strong>Payment ID</strong> in memo — without it your deposit cannot be matched<br>• Sending other tokens = permanent loss<br>• Credits within 1 hour of confirmation</p>
           </div>
         </div>
         <div class="panel" id="panel-withdraw">
@@ -486,15 +483,6 @@ input::placeholder{color:var(--text3);}
             <div class="kpi"><div class="kpi-lbl">Pending Withdrawals</div><div class="kpi-val gold" id="ap">—</div></div>
             <div class="kpi"><div class="kpi-lbl">USDT Deposited</div><div class="kpi-val b" id="ad">—</div></div>
             <div class="kpi"><div class="kpi-lbl">INR Paid Out</div><div class="kpi-val" id="ai">—</div></div>
-          </div>
-          <div class="card" style="margin-bottom:16px;padding:14px 18px">
-            <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-bottom:10px">KYC Breakdown</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap" id="kyc-chips">
-              <span class="kyc-chip s">✓ Verified: —</span>
-              <span class="kyc-chip p">⏳ Submitted: —</span>
-              <span class="kyc-chip w">⚠ Pending: —</span>
-              <span class="kyc-chip r">✕ Rejected: —</span>
-            </div>
           </div>
 
           <!-- Rate -->
@@ -701,7 +689,7 @@ async function checkEmailVerified() {
   try {
     await S.user.reload();
     if (S.user.emailVerified) {
-      toast("✅ Email verified! Welcome to ZAP-CASH!", "success");
+      toast("✅ Email verified! Welcome to CryptoKash!", "success");
       document.getElementById("login-screen").style.display = "none";
       document.getElementById("loader").style.display = "flex";
       document.getElementById("loader-msg").textContent = "Setting up your account...";
@@ -742,7 +730,18 @@ async function signInWithGoogle() {
   setBtnLoad("google-btn", true);
   try {
     const provider = new firebase.auth.GoogleAuthProvider();
-    const result = await fbAuth.signInWithPopup(provider);
+    await fbAuth.signInWithRedirect(provider);
+  } catch(e) {
+    toast("❌ " + e.message, "error");
+    setBtnLoad("google-btn", false, "Continue with Google");
+  }
+}
+
+// Handle redirect result on page load
+async function handleRedirectResult() {
+  try {
+    const result = await fbAuth.getRedirectResult();
+    if (!result || !result.user) return;
     S.user = result.user;
     const token = await result.user.getIdToken();
     const resp = await api("POST", "/api/auth", {}, token);
@@ -755,15 +754,9 @@ async function signInWithGoogle() {
       await bootApp(result.user);
     }
   } catch(e) {
-    if (e.code !== "auth/popup-closed-by-user") {
-      toast("❌ " + e.message, "error");
-    }
+    console.error("Redirect result error:", e);
   }
-  setBtnLoad("google-btn", false, "Continue with Google");
 }
-
-// No-op — kept for compatibility, redirect flow no longer used
-async function handleRedirectResult() {}
 
 async function submitKYC() {
   setBtnLoad("kyc-btn", true);
@@ -893,6 +886,8 @@ function populateAll() {
   document.getElementById("kr").textContent="₹"+(S.rate?.inr?.toFixed(2)||"—");
   document.getElementById("kkyc").innerHTML=kycTag(p.kycStatus);
   document.getElementById("dep-addr").textContent=S.wallet?.depositAddress||"—";
+  const _pid=S.wallet?.paymentId||S.profile?.paymentId||"—";
+  ["dep-pid","dep-pid2"].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=_pid;});
   document.getElementById("dep-rate").textContent=S.rate?.inr?.toFixed(2)||"—";
   document.getElementById("wit-rate").textContent=S.rate?.inr?.toFixed(2)||"—";
   document.getElementById("wit-avail").textContent=fu(S.wallet?.balance)+" USDT";
@@ -993,7 +988,7 @@ async function cancelWithdraw(id) {
 async function loadHistory(type,btn) {
   document.querySelectorAll("#panel-history .btn").forEach(b=>b.className="btn btn-sm btn-o");
   if(btn) btn.className="btn btn-sm btn-p";
-  renderTxSkeleton("hist-txs");
+  document.getElementById("hist-txs").innerHTML='<div style="color:var(--text3);padding:20px;text-align:center">Loading...</div>';
   try {
     const token=await S.user.getIdToken();
     const [deps,wits]=await Promise.all([
@@ -1004,21 +999,18 @@ async function loadHistory(type,btn) {
     if(type==="deposit")  all=all.filter(t=>t._k==="dep");
     if(type==="withdraw") all=all.filter(t=>t._k==="wit");
     if(!all.length){
-      document.getElementById("hist-txs").innerHTML='<div class="empty-state"><div class="es-icon">📋</div><div class="es-txt">No transactions yet.<br>Deposit USDT to get started.</div></div>';
+      document.getElementById("hist-txs").innerHTML='<div style="text-align:center;padding:28px;color:var(--text3)">No transactions yet</div>';
       return;
     }
     renderTxs(all,"hist-txs");
-  } catch(e){
-    document.getElementById("hist-txs").innerHTML=`<div class="empty-state"><div class="es-icon">⚠️</div><div class="es-txt">Failed to load transactions.<br>${e.message}</div><button class="retry-btn" onclick="loadHistory('${type}',null)">↺ Retry</button></div>`;
-  }
+  } catch(e){toast("❌ "+e.message,"error");}
 }
 
 function mergeSort(deps,wits){return[...deps.map(t=>({...t,_k:"dep"})),...wits.map(t=>({...t,_k:"wit"}))].sort((a,b)=>(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0));}
 
 function renderTxs(txs,id) {
   const el=document.getElementById(id);
-  if(!el) return;
-  if(!txs.length){el.innerHTML='<div class="empty-state"><div class="es-icon">📭</div><div class="es-txt">No transactions yet</div></div>';return;}
+  if(!txs.length){el.innerHTML='<div style="text-align:center;padding:28px;color:var(--text3)">No transactions yet</div>';return;}
   el.innerHTML=txs.map(tx=>{
     const dep=tx._k==="dep";
     const amt=fu(tx.amountUSDT||tx.amount);
@@ -1107,16 +1099,11 @@ async function submitWithdraw() {
 }
 
 async function saveProfile() {
-  const fn=v("pfn"),ln=v("pln"),email=v("pemail");
-  if(!fn) return toast("⚠️ First name is required","error");
-  const update={name:(fn+(ln?" "+ln:"")).trim()};
-  if(email) update.email=email;
   try {
     const token=await S.user.getIdToken();
-    await api("PATCH","/api/auth",update,token);
-    S.profile={...S.profile,...update};
-    document.getElementById("top-name").textContent=fn;
-    document.getElementById("pname").textContent=update.name;
+    await api("PATCH","/api/auth",{name:v("pfn")+" "+v("pln"),email:v("pemail")},token);
+    S.profile.name=v("pfn")+" "+v("pln");
+    document.getElementById("top-name").textContent=v("pfn");
     toast("✅ Profile updated!","success");
   } catch(e){toast("❌ "+e.message,"error");}
 }
@@ -1124,38 +1111,20 @@ async function saveProfile() {
 async function loadAdmin(token) {
   try {
     if(!token) token=await S.user.getIdToken();
-    const [stats,reqs,usersResp]=await Promise.all([
-      api("GET","/api/admin?action=stats",null,token),
-      api("GET","/api/admin?action=withdrawals",null,token),
-      api("GET","/api/admin?action=users",null,token),
-    ]);
+    const [stats,reqs,users]=await Promise.all([api("GET","/api/admin?action=stats",null,token),api("GET","/api/admin?action=withdrawals",null,token),api("GET","/api/admin?action=users",null,token)]);
     document.getElementById("au").textContent=stats.totalUsers;
     document.getElementById("ap").textContent=stats.pendingRequests;
-    document.getElementById("ad").textContent=fu(stats.totalUSDTDeposited)+" USDT";
+    document.getElementById("ad").textContent=fu(stats.totalUSDTDeposited);
     document.getElementById("ai").textContent="₹"+fi(stats.totalINRPaid);
     document.getElementById("ar").value=stats.rate;
-    // KYC breakdown chips
-    if(stats.kyc) {
-      document.getElementById("kyc-chips").innerHTML=`
-        <span class="kyc-chip s">✓ Verified: ${stats.kyc.verified||0}</span>
-        <span class="kyc-chip p">⏳ Submitted: ${stats.kyc.submitted||0}</span>
-        <span class="kyc-chip w">⚠ Pending: ${stats.kyc.pending||0}</span>
-        <span class="kyc-chip r">✕ Rejected: ${stats.kyc.rejected||0}</span>`;
-    }
-    // usersResp is now paginated: { page, pageSize, items }
-    const users = Array.isArray(usersResp) ? usersResp : (usersResp.items || []);
-    renderReqs(reqs);
-    renderUsers(users);
-  } catch(e){console.error("admin load:",e);toast("❌ Failed to load admin data","error");}
+    renderReqs(reqs);renderUsers(users);
+  } catch(e){console.error("admin load:",e);}
 }
 
 function renderReqs(reqs) {
   const el=document.getElementById("req-list");
-  if(!reqs.length){el.innerHTML='<div class="empty-state"><div class="es-icon">✅</div><div class="es-txt">No pending withdrawal requests</div></div>';return;}
-  el.innerHTML=reqs.map(r=>{
-    const dt=r.createdAt?.seconds?new Date(r.createdAt.seconds*1000).toLocaleString("en-IN",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"—";
-    return`<div class="req-item new"><div style="width:40px;height:40px;border-radius:11px;background:rgba(249,115,22,.1);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">💸</div><div class="req-body"><div class="req-user">${r.name} · <span style="color:var(--text3)">${r.phone||r.email||""}</span></div><div class="req-detail">${fu(r.amountUSDT)} USDT → ₹${fi(r.netINR)} · ${r.bank?.bankName||""} ${r.bank?.masked||""}</div><div style="font-size:10px;color:var(--text3);margin-top:3px">${dt}</div></div><button class="btn btn-xs btn-p" onclick="openReq('${r.id}')">Review →</button></div>`;
-  }).join("");
+  if(!reqs.length){el.innerHTML='<div style="text-align:center;padding:28px;color:var(--text3)">✅ No pending requests</div>';return;}
+  el.innerHTML=reqs.map(r=>`<div class="req-item new"><div style="width:40px;height:40px;border-radius:11px;background:rgba(249,115,22,.1);display:flex;align-items:center;justify-content:center;font-size:18px">💸</div><div class="req-body"><div class="req-user">${r.name} · ${r.phone||r.email||""}</div><div class="req-detail">${r.amountUSDT} USDT → ₹${fi(r.netINR)} → ${r.bank?.bankName} ${r.bank?.masked}</div></div><button class="btn btn-xs btn-p" onclick="openReq('${r.id}')">Review</button></div>`).join("");
 }
 
 async function openReq(id) {
@@ -1169,24 +1138,20 @@ async function openReq(id) {
 }
 
 async function approveReq() {
-  const utr = v("autr");
-  if (!utr) return toast("⚠️ UTR number is required to approve", "error");
   setBtnLoad("app-btn",true);
   try {
     const token=await S.user.getIdToken();
-    await api("POST","/api/admin?action=approve&id="+S.activeReq.id,{note:v("anote"),utr},token);
-    closeModal();toast("✅ Approved! UTR: "+utr,"success");loadAdmin(token);
+    await api("POST","/api/admin?action=approve&id="+S.activeReq.id,{note:v("anote")},token);
+    closeModal();toast("✅ Approved!","success");loadAdmin(token);
   } catch(e){toast("❌ "+e.message,"error");}
   setBtnLoad("app-btn",false,"✓ Approve");
 }
 
 async function rejectReq() {
-  const reason = v("areason");
-  if (!reason) return toast("⚠️ Rejection reason is required", "error");
   setBtnLoad("rej-btn",true);
   try {
     const token=await S.user.getIdToken();
-    await api("POST","/api/admin?action=reject&id="+S.activeReq.id,{note:v("anote"),reason},token);
+    await api("POST","/api/admin?action=reject&id="+S.activeReq.id,{note:v("anote")},token);
     closeModal();toast("❌ Rejected. USDT refunded.","error");loadAdmin(token);
   } catch(e){toast("❌ "+e.message,"error");}
   setBtnLoad("rej-btn",false,"✕ Reject");
@@ -1215,10 +1180,7 @@ function renderUsers(users) {
       <td style="font-family:'IBM Plex Mono',monospace;color:var(--accent)">${fu(u.balance||u.walletBalance||0)} USDT</td>
       <td style="font-family:'IBM Plex Mono',monospace">${fu(u.totalDeposited||0)} USDT</td>
       <td style="color:var(--text3);font-size:11px">${u.createdAt?.seconds?new Date(u.createdAt.seconds*1000).toLocaleDateString("en-IN"):"—"}</td>
-      <td style="display:flex;gap:5px">
-  <button class="btn btn-xs btn-p" onclick="quickEditBalance('${u.uid||u.id}','${(u.name||u.email||"User").replace(/'/g,"\\'")}',${fu(u.balance||0)})">✏️</button>
-  <button class="btn btn-xs btn-d" onclick="deleteUser('${u.uid||u.id}','${(u.name||u.email||"User").replace(/'/g,"\\'")}')">🗑️</button>
-</td>
+      <td><button class="btn btn-xs btn-p" onclick="quickEditBalance('${u.uid||u.id}','${(u.name||u.email||"User").replace(/'/g,"\'")}',${fu(u.balance||0)})">✏️</button></td>
     </tr>`).join("");
 }
 
@@ -1259,10 +1221,9 @@ async function loadBalanceUsers() {
   el.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:20px;text-align:center">Loading...</div>';
   try {
     const token = await S.user.getIdToken();
-    const resp = await api("GET", "/api/admin?action=users-with-wallets", null, token);
-    // Handle paginated response
-    const users = Array.isArray(resp) ? resp : (resp.items || []);
-    if (!users.length) { el.innerHTML='<div class="empty-state"><div class="es-icon">👥</div><div class="es-txt">No users yet</div></div>'; return; }
+    // Get users + their wallets
+    const users = await api("GET", "/api/admin?action=users-with-wallets", null, token);
+    if (!users.length) { el.innerHTML='<div style="color:var(--text3);padding:20px;text-align:center">No users yet</div>'; return; }
     el.innerHTML = `
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;padding:10px 14px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3)">
@@ -1273,10 +1234,7 @@ async function loadBalanceUsers() {
           <div style="font-size:13px;font-weight:600">${u.name||"—"}</div>
           <div style="font-size:11px;color:var(--text3)">${u.email||"—"}</div>
           <div style="font-family:'IBM Plex Mono',monospace;color:var(--accent);font-size:13px;font-weight:700">${fu(u.balance||0)} USDT</div>
-          <div style="display:flex;gap:5px">
-  <button class="btn btn-xs btn-p" onclick="openEditBal('${u.uid||u.id}','${(u.name||u.email||"User").replace(/'/g,"\\'")}',${fu(u.balance||0)})">✏️</button>
-  <button class="btn btn-xs btn-d" onclick="deleteUser('${u.uid||u.id}','${(u.name||u.email||"User").replace(/'/g,"\\'")}')">🗑️</button>
-</div>
+          <button class="btn btn-xs btn-p" onclick="openEditBal('${u.uid||u.id}','${(u.name||u.email||"User").replace(/'/g,"\'")}',${fu(u.balance||0)})">✏️ Edit</button>
         </div>`).join("")}
       </div>`;
   } catch(e) { el.innerHTML='<div style="color:var(--danger);padding:20px;text-align:center">Error loading users</div>'; console.error(e); }
@@ -1292,11 +1250,9 @@ function openEditBal(uid, name, currentBal) {
 async function loadAdminKYC() {
   try {
     const token = await S.user.getIdToken();
-    const resp = await api("GET", "/api/admin?action=kyc-list", null, token);
-    // Handle paginated response
-    const kycs = Array.isArray(resp) ? resp : (resp.items || []);
+    const kycs = await api("GET", "/api/admin?action=kyc-list", null, token);
     const el = document.getElementById("kyc-list");
-    if (!kycs.length) { el.innerHTML = '<div class="empty-state"><div class="es-icon">🪪</div><div class="es-txt">No KYC submissions yet</div></div>'; return; }
+    if (!kycs.length) { el.innerHTML = '<div style="color:var(--text3);padding:20px;text-align:center">No KYC submissions yet</div>'; return; }
     el.innerHTML = kycs.map(k => `
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:15px;margin-bottom:10px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -1330,15 +1286,9 @@ async function loadAdminKYC() {
 }
 
 async function adminKYCAction(uid, action) {
-  let body = {};
-  if (action === "reject") {
-    const reason = prompt("Enter rejection reason (required):");
-    if (!reason?.trim()) return toast("⚠️ Rejection reason required", "error");
-    body.reason = reason.trim();
-  }
   try {
     const token = await S.user.getIdToken();
-    await api("POST", `/api/admin?action=kyc-${action}&uid=${uid}`, body, token);
+    await api("POST", `/api/admin?action=kyc-${action}&uid=${uid}`, {}, token);
     toast(action === "approve" ? "✅ KYC Verified!" : "❌ KYC Rejected", action === "approve" ? "success" : "error");
     loadAdminKYC();
   } catch(e) { toast("❌ " + e.message, "error"); }
@@ -1366,21 +1316,11 @@ async function logout() {
 }
 
 async function api(method,path,body,token) {
-  const makeReq = async (tok) => {
-    const h={"Content-Type":"application/json"};
-    if(tok) h["Authorization"]="Bearer "+tok;
-    const opts={method,headers:h};
-    if(body&&method!=="GET") opts.body=JSON.stringify(body);
-    return fetch(API+path,opts);
-  };
-  let r=await makeReq(token);
-  // Auto-retry once with a force-refreshed token on 401 (expired token)
-  if(r.status===401 && S.user && token) {
-    try {
-      const fresh=await S.user.getIdToken(true);
-      r=await makeReq(fresh);
-    } catch(_) {}
-  }
+  const h={"Content-Type":"application/json"};
+  if(token) h["Authorization"]="Bearer "+token;
+  const opts={method,headers:h};
+  if(body&&method!=="GET") opts.body=JSON.stringify(body);
+  const r=await fetch(API+path,opts);
   const j=await r.json();
   if(!r.ok) throw new Error(j.error||"Request failed");
   return j;
@@ -1392,14 +1332,14 @@ function v(id){return document.getElementById(id)?.value?.trim()||"";}
 function show(id){document.getElementById(id).classList.add("active");}
 function hide(id){const el=document.getElementById(id);if(el)el.classList.remove("active");}
 function setLoader(msg){document.getElementById("loader-msg").textContent=msg;document.getElementById("loader").style.display="flex";}
-function copyAddr(){
-  const txt=document.getElementById("dep-addr").textContent;
+function copyPid(){
+  const txt=document.getElementById("dep-pid").textContent;
+  if(!txt||txt==="—") return toast("⚠️ Payment ID not loaded yet","error");
   navigator.clipboard?.writeText(txt).then(()=>{
-    const btn=document.querySelector(".copy-btn");
-    if(btn){btn.textContent="✓ Copied";btn.classList.add("copied");setTimeout(()=>{btn.textContent="📋 Copy";btn.classList.remove("copied");},2000);}
-    toast("📋 Address copied!","success");
+    toast("✅ Payment ID copied! Include it in memo when sending.","success");
   }).catch(()=>{toast("❌ Copy failed","error");});
 }
+function copyAddr(){navigator.clipboard?.writeText(document.getElementById("dep-addr").textContent);toast("📋 Address copied!","success");}
 function closeModal(){document.getElementById("req-modal").classList.remove("show");}
 function startRatePoll(){setInterval(async()=>{try{const r=await api("GET","/api/rates");S.rate=r;document.getElementById("live-rate").textContent=r.inr.toFixed(2);document.getElementById("dep-rate").textContent=r.inr.toFixed(2);document.getElementById("wit-rate").textContent=r.inr.toFixed(2);document.getElementById("kr").textContent="₹"+r.inr.toFixed(2);}catch{}},30000);}
 function kycTag(s){const m={verified:'<span class="tag s">✓ Verified</span>',submitted:'<span class="tag i">⏳ Under Review</span>',pending:'<span class="tag p">⚠ Pending</span>',rejected:'<span class="tag f">✕ Rejected</span>'};return m[s]||m.pending;}
@@ -1459,73 +1399,6 @@ function populateWithdraw() {
   if (kycEl) kycEl.innerHTML = kycTag(p.kycStatus);
 }
 
-// ── Input auto-formatters ─────────────────────────────────────
-function setupInputFormatters() {
-  // PAN: auto uppercase
-  document.querySelectorAll("#kpan,#kpan2").forEach(el => {
-    if (el) el.addEventListener("input", () => { el.value = el.value.toUpperCase(); });
-  });
-  // Aadhaar: auto-space every 4 digits
-  document.querySelectorAll("#kaadh,#kaadh2").forEach(el => {
-    if (!el) return;
-    el.addEventListener("input", () => {
-      const raw = el.value.replace(/\D/g, "").slice(0, 12);
-      el.value = raw.replace(/(\d{4})(?=\d)/g, "$1 ");
-    });
-  });
-  // IFSC: auto uppercase
-  const ifscEl = document.getElementById("bf-i");
-  if (ifscEl) ifscEl.addEventListener("input", () => { ifscEl.value = ifscEl.value.toUpperCase(); });
-}
-setupInputFormatters();
-
-// ── Skeleton loader helpers ───────────────────────────────────
-function skelBox(h="18px",w="100%",mb="0"){return`<div class="skel" style="height:${h};width:${w};margin-bottom:${mb}"></div>`;}
-
-function renderTxSkeleton(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.innerHTML = [1,2,3].map(()=>`
-    <div style="display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:13px 15px">
-      ${skelBox("38px","38px")}
-      <div style="flex:1">${skelBox("13px","60%","6px")}${skelBox("11px","40%")}</div>
-      <div style="text-align:right">${skelBox("13px","80px","4px")}${skelBox("10px","60px")}</div>
-    </div>`).join("");
-}
-
-async function loadAllUsers() {
-  const el = document.getElementById("utbody");
-  if (!el) return;
-  el.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">Loading...</td></tr>';
-  try {
-    const token = await S.user.getIdToken();
-    const resp = await api("GET", "/api/admin?action=users-with-wallets", null, token);
-    const users = Array.isArray(resp) ? resp : (resp.items || []);
-    if (!users.length) {
-      el.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">No users yet</td></tr>';
-      return;
-    }
-    renderUsers(users);
-  } catch(e) {
-    el.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--danger)">Error: ' + e.message + '</td></tr>';
-  }
-}
-async function deleteUser(uid, name) {
-  if (!confirm(`⚠️ DELETE "${name}"?\n\nThis will permanently delete:\n• User profile\n• Wallet & balance\n• All transactions\n• All withdrawals\n• KYC data\n• Firebase Auth account\n\nThis CANNOT be undone!`)) return;
-  const confirmName = prompt(`Type the user's name "${name}" to confirm:`);
-  if (confirmName !== name) return toast("❌ Name didn't match — deletion cancelled", "error");
-  try {
-    const token = await S.user.getIdToken();
-    await fetch(`/api/admin?action=delete-user&uid=${uid}`, {
-      method: "DELETE",
-      headers: { "Authorization": "Bearer " + token }
-    }).then(r => r.json());
-    toast("🗑️ User deleted successfully", "success");
-    loadAdmin();
-    loadBalanceUsers();
-    loadAllUsers();
-  } catch(e) { toast("❌ " + e.message, "error"); }
-}
 function gp(name,el){
   document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
   document.querySelectorAll(".ni").forEach(n=>n.classList.remove("active"));

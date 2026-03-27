@@ -1,19 +1,20 @@
 /**
  * api/wallet.js  →  /api/wallet
- * GET /api/wallet  → balance, deposit address, INR equivalent
  */
 
 const { db } = require("../lib/firebase");
 const { verifyToken, handle } = require("../lib/middleware");
+
+const MASTER_ADDRESS = "TKndaoEv14h3h9m6LWKXhkDe37w54jfmEz";
 
 module.exports = handle(async (req, res) => {
   if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
 
   const user = await verifyToken(req);
 
-  const [walletSnap, addrSnap, rateSnap] = await Promise.all([
+  const [walletSnap, userSnap, rateSnap] = await Promise.all([
     db.collection("wallets").doc(user.uid).get(),
-    db.collection("addresses").doc(user.uid).get(),
+    db.collection("users").doc(user.uid).get(),
     db.collection("config").doc("rate").get(),
   ]);
 
@@ -21,6 +22,7 @@ module.exports = handle(async (req, res) => {
 
   const wallet = walletSnap.data();
   const rate   = rateSnap.exists ? rateSnap.data().inr : 87.42;
+  const paymentId = wallet.paymentId || userSnap.data()?.paymentId || "";
 
   res.json({
     balance:        wallet.balance,
@@ -28,7 +30,8 @@ module.exports = handle(async (req, res) => {
     totalDeposited: wallet.totalDeposited,
     totalWithdrawn: wallet.totalWithdrawn,
     rate,
-    depositAddress: addrSnap.exists ? addrSnap.data().address : null,
+    depositAddress: MASTER_ADDRESS,
+    paymentId,
     network: "TRC-20",
   });
 });
