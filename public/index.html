@@ -1215,7 +1215,10 @@ function renderUsers(users) {
       <td style="font-family:'IBM Plex Mono',monospace;color:var(--accent)">${fu(u.balance||u.walletBalance||0)} USDT</td>
       <td style="font-family:'IBM Plex Mono',monospace">${fu(u.totalDeposited||0)} USDT</td>
       <td style="color:var(--text3);font-size:11px">${u.createdAt?.seconds?new Date(u.createdAt.seconds*1000).toLocaleDateString("en-IN"):"—"}</td>
-      <td><button class="btn btn-xs btn-p" onclick="quickEditBalance('${u.uid||u.id}','${(u.name||u.email||"User").replace(/'/g,"\'")}',${fu(u.balance||0)})">✏️</button></td>
+      <td style="display:flex;gap:5px">
+  <button class="btn btn-xs btn-p" onclick="quickEditBalance('${u.uid||u.id}','${(u.name||u.email||"User").replace(/'/g,"\\'")}',${fu(u.balance||0)})">✏️</button>
+  <button class="btn btn-xs btn-d" onclick="deleteUser('${u.uid||u.id}','${(u.name||u.email||"User").replace(/'/g,"\\'")}')">🗑️</button>
+</td>
     </tr>`).join("");
 }
 
@@ -1270,7 +1273,10 @@ async function loadBalanceUsers() {
           <div style="font-size:13px;font-weight:600">${u.name||"—"}</div>
           <div style="font-size:11px;color:var(--text3)">${u.email||"—"}</div>
           <div style="font-family:'IBM Plex Mono',monospace;color:var(--accent);font-size:13px;font-weight:700">${fu(u.balance||0)} USDT</div>
-          <button class="btn btn-xs btn-p" onclick="openEditBal('${u.uid||u.id}','${(u.name||u.email||"User").replace(/'/g,"\'")}',${fu(u.balance||0)})">✏️ Edit</button>
+          <div style="display:flex;gap:5px">
+  <button class="btn btn-xs btn-p" onclick="openEditBal('${u.uid||u.id}','${(u.name||u.email||"User").replace(/'/g,"\\'")}',${fu(u.balance||0)})">✏️</button>
+  <button class="btn btn-xs btn-d" onclick="deleteUser('${u.uid||u.id}','${(u.name||u.email||"User").replace(/'/g,"\\'")}')">🗑️</button>
+</div>
         </div>`).join("")}
       </div>`;
   } catch(e) { el.innerHTML='<div style="color:var(--danger);padding:20px;text-align:center">Error loading users</div>'; console.error(e); }
@@ -1503,6 +1509,22 @@ async function loadAllUsers() {
   } catch(e) {
     el.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--danger)">Error: ' + e.message + '</td></tr>';
   }
+}
+async function deleteUser(uid, name) {
+  if (!confirm(`⚠️ DELETE "${name}"?\n\nThis will permanently delete:\n• User profile\n• Wallet & balance\n• All transactions\n• All withdrawals\n• KYC data\n• Firebase Auth account\n\nThis CANNOT be undone!`)) return;
+  const confirmName = prompt(`Type the user's name "${name}" to confirm:`);
+  if (confirmName !== name) return toast("❌ Name didn't match — deletion cancelled", "error");
+  try {
+    const token = await S.user.getIdToken();
+    await fetch(`/api/admin?action=delete-user&uid=${uid}`, {
+      method: "DELETE",
+      headers: { "Authorization": "Bearer " + token }
+    }).then(r => r.json());
+    toast("🗑️ User deleted successfully", "success");
+    loadAdmin();
+    loadBalanceUsers();
+    loadAllUsers();
+  } catch(e) { toast("❌ " + e.message, "error"); }
 }
 function gp(name,el){
   document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
