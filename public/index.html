@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CryptoKash — USDT to INR</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -359,6 +360,14 @@ input::placeholder{color:var(--text3);}
               <div style="display:flex;gap:10px;align-items:center"><span style="background:var(--danger);color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0">!</span><span>In <strong>Memo / Tag / Note</strong> field enter: <strong id="dep-pid2" style="color:var(--accent)">—</strong></span></div>
             </div>
           </div>
+          <!-- QR Code Card -->
+          <div class="card" style="margin-bottom:14px;text-align:center">
+            <div style="font-size:13px;font-weight:700;margin-bottom:4px">📱 Scan to Deposit</div>
+            <div style="font-size:12px;color:var(--text2);margin-bottom:16px">Scan with TronLink, Binance or any Tron wallet — address & memo auto-filled</div>
+            <div id="dep-qr" style="display:inline-block;background:#fff;padding:14px;border-radius:14px;margin-bottom:12px"></div>
+            <div style="font-size:11px;color:var(--text3)">Contains: Address + your Payment ID memo</div>
+          </div>
+
           <div class="card">
             <div style="font-size:13px;font-weight:700;margin-bottom:8px">⚠️ Important</div>
             <p style="font-size:13px;color:var(--text2);line-height:1.7">• Only send <strong>USDT on TRC-20</strong> (Tron) network<br>• Always include your <strong>Payment ID</strong> in memo — without it your deposit cannot be matched<br>• Sending other tokens = permanent loss<br>• Credits within 1 hour of confirmation</p>
@@ -457,14 +466,28 @@ input::placeholder{color:var(--text3);}
           </div>
         </div>
         <div class="panel" id="panel-profile">
+
+          <!-- Avatar + Basic Info -->
           <div class="card" style="margin-bottom:14px">
-            <div style="display:flex;align-items:center;gap:18px;margin-bottom:18px">
-              <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#000" id="pav">?</div>
+            <div style="display:flex;align-items:center;gap:18px;margin-bottom:20px">
+              <div style="position:relative;cursor:pointer" onclick="document.getElementById('avatar-picker').style.display='block'">
+                <div style="width:70px;height:70px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#000;border:3px solid rgba(0,240,160,.3);overflow:hidden" id="pav">?</div>
+                <div style="position:absolute;bottom:0;right:0;width:22px;height:22px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px">✏️</div>
+              </div>
               <div>
                 <div style="font-size:19px;font-weight:800" id="pname">—</div>
                 <div style="font-size:12px;color:var(--text2);font-family:'IBM Plex Mono',monospace;margin-top:3px" id="pphone">—</div>
+                <div style="font-size:11px;color:var(--text3);margin-top:4px" id="p-member-since">—</div>
               </div>
             </div>
+
+            <!-- Avatar Picker -->
+            <div id="avatar-picker" style="display:none;margin-bottom:18px;background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:14px">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);margin-bottom:12px">Choose Avatar</div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px" id="avatar-options"></div>
+              <button class="btn btn-xs btn-o" onclick="document.getElementById('avatar-picker').style.display='none'">Close</button>
+            </div>
+
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
               <div class="field" style="margin:0"><label>First Name</label><input type="text" id="pfn"></div>
               <div class="field" style="margin:0"><label>Last Name</label><input type="text" id="pln"></div>
@@ -472,6 +495,57 @@ input::placeholder{color:var(--text3);}
             <div class="field" style="margin-top:10px;margin-bottom:0"><label>Email</label><input type="email" id="pemail"></div>
             <button class="btn btn-sm btn-p" style="margin-top:13px;width:auto;padding:10px 22px" onclick="saveProfile()">Save Changes</button>
           </div>
+
+          <!-- Notification Preferences -->
+          <div class="card" style="margin-bottom:14px">
+            <div style="font-size:13px;font-weight:700;margin-bottom:16px">🔔 Notification Preferences</div>
+            <div id="notif-list">
+              <!-- Deposit Confirmed -->
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+                <div><div style="font-size:13px;font-weight:600">Deposit Confirmed</div><div style="font-size:11px;color:var(--text3);margin-top:2px">When USDT is credited to your wallet</div></div>
+                <div style="position:relative;width:42px;height:24px;flex-shrink:0;cursor:pointer" onclick="toggleNotif('notif-deposit')">
+                  <div id="notif-deposit-track" style="position:absolute;inset:0;background:var(--accent);border-radius:24px;transition:.3s"></div>
+                  <div id="notif-deposit-thumb" style="position:absolute;left:3px;top:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.3s;transform:translateX(18px)"></div>
+                  <input type="checkbox" id="notif-deposit" checked style="display:none">
+                </div>
+              </div>
+              <!-- Withdrawal Status -->
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+                <div><div style="font-size:13px;font-weight:600">Withdrawal Status</div><div style="font-size:11px;color:var(--text3);margin-top:2px">When withdrawal is approved or rejected</div></div>
+                <div style="position:relative;width:42px;height:24px;flex-shrink:0;cursor:pointer" onclick="toggleNotif('notif-withdraw')">
+                  <div id="notif-withdraw-track" style="position:absolute;inset:0;background:var(--accent);border-radius:24px;transition:.3s"></div>
+                  <div id="notif-withdraw-thumb" style="position:absolute;left:3px;top:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.3s;transform:translateX(18px)"></div>
+                  <input type="checkbox" id="notif-withdraw" checked style="display:none">
+                </div>
+              </div>
+              <!-- KYC Updates -->
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+                <div><div style="font-size:13px;font-weight:600">KYC Updates</div><div style="font-size:11px;color:var(--text3);margin-top:2px">When your KYC is verified or rejected</div></div>
+                <div style="position:relative;width:42px;height:24px;flex-shrink:0;cursor:pointer" onclick="toggleNotif('notif-kyc')">
+                  <div id="notif-kyc-track" style="position:absolute;inset:0;background:var(--accent);border-radius:24px;transition:.3s"></div>
+                  <div id="notif-kyc-thumb" style="position:absolute;left:3px;top:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.3s;transform:translateX(18px)"></div>
+                  <input type="checkbox" id="notif-kyc" checked style="display:none">
+                </div>
+              </div>
+              <!-- Rate Changes -->
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0">
+                <div><div style="font-size:13px;font-weight:600">Rate Changes</div><div style="font-size:11px;color:var(--text3);margin-top:2px">When exchange rate changes significantly</div></div>
+                <div style="position:relative;width:42px;height:24px;flex-shrink:0;cursor:pointer" onclick="toggleNotif('notif-rate')">
+                  <div id="notif-rate-track" style="position:absolute;inset:0;background:var(--border2);border-radius:24px;transition:.3s"></div>
+                  <div id="notif-rate-thumb" style="position:absolute;left:3px;top:3px;width:18px;height:18px;background:#fff;border-radius:50%;transition:.3s;transform:translateX(0)"></div>
+                  <input type="checkbox" id="notif-rate" style="display:none">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Account Activity Log -->
+          <div class="card" style="margin-bottom:14px">
+            <div style="font-size:13px;font-weight:700;margin-bottom:14px">📋 Account Activity</div>
+            <div id="activity-log"><div style="text-align:center;padding:20px;color:var(--text3)">Loading...</div></div>
+          </div>
+
+          <!-- Danger Zone -->
           <div class="card">
             <div style="font-size:13px;font-weight:700;margin-bottom:10px">Danger Zone</div>
             <button class="btn btn-d" onclick="logout()">🚪 Logout</button>
@@ -888,11 +962,14 @@ function populateAll() {
   document.getElementById("dep-addr").textContent=S.wallet?.depositAddress||"—";
   const _pid=S.wallet?.paymentId||S.profile?.paymentId||"—";
   ["dep-pid","dep-pid2"].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=_pid;});
+  setTimeout(generateDepositQR, 100);
   document.getElementById("dep-rate").textContent=S.rate?.inr?.toFixed(2)||"—";
   document.getElementById("wit-rate").textContent=S.rate?.inr?.toFixed(2)||"—";
   document.getElementById("wit-avail").textContent=fu(S.wallet?.balance)+" USDT";
   document.getElementById("fr").textContent="₹"+(S.rate?.inr?.toFixed(2)||"—")+" / USDT";
-  document.getElementById("pav").textContent=(name[0]||"U").toUpperCase();
+  const _av = S.profile?.avatar || (name[0]||"U").toUpperCase();
+  document.getElementById("pav").textContent=_av;
+  document.getElementById("top-av").textContent=_av;
   document.getElementById("pname").textContent=p.name||name;
   document.getElementById("pphone").textContent=S.user?.email||"—";
   document.getElementById("pfn").value=p.firstName||"";
@@ -1014,7 +1091,12 @@ function renderTxs(txs,id) {
   el.innerHTML=txs.map(tx=>{
     const dep=tx._k==="dep";
     const amt=fu(tx.amountUSDT||tx.amount);
-    const dt=tx.createdAt?.seconds?new Date(tx.createdAt.seconds*1000).toLocaleString("en-IN",{day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit"}):"—";
+    let _d=null;
+    if(tx.createdAt?.seconds) _d=new Date(tx.createdAt.seconds*1000);
+    else if(tx.createdAt?._seconds) _d=new Date(tx.createdAt._seconds*1000);
+    else if(tx.createdAt instanceof Date) _d=tx.createdAt;
+    else if(typeof tx.createdAt==="string") _d=new Date(tx.createdAt);
+    const dt=_d?_d.toLocaleString("en-IN",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:true}):"—";
 
     // Determine type label, icon, color
     let label, ic, sign, ac;
@@ -1138,20 +1220,24 @@ async function openReq(id) {
 }
 
 async function approveReq() {
+  const utr = v("autr");
+  if (!utr) return toast("⚠️ UTR number is required to approve", "error");
   setBtnLoad("app-btn",true);
   try {
     const token=await S.user.getIdToken();
-    await api("POST","/api/admin?action=approve&id="+S.activeReq.id,{note:v("anote")},token);
-    closeModal();toast("✅ Approved!","success");loadAdmin(token);
+    await api("POST","/api/admin?action=approve&id="+S.activeReq.id,{note:v("anote"),utr},token);
+    closeModal();toast("✅ Approved! UTR: "+utr,"success");loadAdmin(token);
   } catch(e){toast("❌ "+e.message,"error");}
   setBtnLoad("app-btn",false,"✓ Approve");
 }
 
 async function rejectReq() {
+  const reason = v("areason");
+  if (!reason) return toast("⚠️ Rejection reason is required", "error");
   setBtnLoad("rej-btn",true);
   try {
     const token=await S.user.getIdToken();
-    await api("POST","/api/admin?action=reject&id="+S.activeReq.id,{note:v("anote")},token);
+    await api("POST","/api/admin?action=reject&id="+S.activeReq.id,{note:v("anote"),reason},token);
     closeModal();toast("❌ Rejected. USDT refunded.","error");loadAdmin(token);
   } catch(e){toast("❌ "+e.message,"error");}
   setBtnLoad("rej-btn",false,"✕ Reject");
@@ -1180,7 +1266,10 @@ function renderUsers(users) {
       <td style="font-family:'IBM Plex Mono',monospace;color:var(--accent)">${fu(u.balance||u.walletBalance||0)} USDT</td>
       <td style="font-family:'IBM Plex Mono',monospace">${fu(u.totalDeposited||0)} USDT</td>
       <td style="color:var(--text3);font-size:11px">${u.createdAt?.seconds?new Date(u.createdAt.seconds*1000).toLocaleDateString("en-IN"):"—"}</td>
-      <td><button class="btn btn-xs btn-p" onclick="quickEditBalance('${u.uid||u.id}','${(u.name||u.email||"User").replace(/'/g,"\'")}',${fu(u.balance||0)})">✏️</button></td>
+      <td style="display:flex;gap:5px;align-items:center">
+        <button class="btn btn-xs btn-p" onclick="quickEditBalance('${u.uid||u.id}','${(u.name||u.email||"User").replace(/'/g,"\'")}',${fu(u.balance||0)})">✏️</button>
+        <button class="btn btn-xs btn-d" onclick="deleteUser('${u.uid||u.id}','${(u.name||u.email||"User").replace(/'/g,"\'")}')">🗑️</button>
+      </td>
     </tr>`).join("");
 }
 
@@ -1221,23 +1310,26 @@ async function loadBalanceUsers() {
   el.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:20px;text-align:center">Loading...</div>';
   try {
     const token = await S.user.getIdToken();
-    // Get users + their wallets
-    const users = await api("GET", "/api/admin?action=users-with-wallets", null, token);
-    if (!users.length) { el.innerHTML='<div style="color:var(--text3);padding:20px;text-align:center">No users yet</div>'; return; }
+    const resp = await api("GET", "/api/admin?action=users-with-wallets", null, token);
+    const users = Array.isArray(resp) ? resp : (resp.items || []);
+    if (!users.length) { el.innerHTML='<div class="empty-state"><div class="es-icon">👥</div><div class="es-txt">No users yet</div></div>'; return; }
     el.innerHTML = `
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;padding:10px 14px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3)">
           <span>User</span><span>Email</span><span>Balance</span><span>Action</span>
         </div>
         ${users.map(u=>`
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.04);align-items:center">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.04);align-items:center;gap:8px">
           <div style="font-size:13px;font-weight:600">${u.name||"—"}</div>
           <div style="font-size:11px;color:var(--text3)">${u.email||"—"}</div>
           <div style="font-family:'IBM Plex Mono',monospace;color:var(--accent);font-size:13px;font-weight:700">${fu(u.balance||0)} USDT</div>
-          <button class="btn btn-xs btn-p" onclick="openEditBal('${u.uid||u.id}','${(u.name||u.email||"User").replace(/'/g,"\'")}',${fu(u.balance||0)})">✏️ Edit</button>
+          <div style="display:flex;gap:5px">
+            <button class="btn btn-xs btn-p" onclick="openEditBal('${u.uid||u.id}','${(u.name||u.email||"User").replace(/'/g,"\'")}',${fu(u.balance||0)})">✏️</button>
+            <button class="btn btn-xs btn-d" onclick="deleteUser('${u.uid||u.id}','${(u.name||u.email||"User").replace(/'/g,"\'")}')">🗑️</button>
+          </div>
         </div>`).join("")}
       </div>`;
-  } catch(e) { el.innerHTML='<div style="color:var(--danger);padding:20px;text-align:center">Error loading users</div>'; console.error(e); }
+  } catch(e) { el.innerHTML='<div style="color:var(--danger);padding:20px;text-align:center">Error: '+e.message+'</div>'; console.error(e); }
 }
 
 function openEditBal(uid, name, currentBal) {
@@ -1250,9 +1342,10 @@ function openEditBal(uid, name, currentBal) {
 async function loadAdminKYC() {
   try {
     const token = await S.user.getIdToken();
-    const kycs = await api("GET", "/api/admin?action=kyc-list", null, token);
+    const kycResp = await api("GET", "/api/admin?action=kyc-list", null, token);
+    const kycs = Array.isArray(kycResp) ? kycResp : (kycResp.items || []);
     const el = document.getElementById("kyc-list");
-    if (!kycs.length) { el.innerHTML = '<div style="color:var(--text3);padding:20px;text-align:center">No KYC submissions yet</div>'; return; }
+    if (!kycs.length) { el.innerHTML = '<div class="empty-state"><div class="es-icon">🪪</div><div class="es-txt">No KYC submissions yet</div></div>'; return; }
     el.innerHTML = kycs.map(k => `
       <div style="background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:15px;margin-bottom:10px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
@@ -1332,6 +1425,30 @@ function v(id){return document.getElementById(id)?.value?.trim()||"";}
 function show(id){document.getElementById(id).classList.add("active");}
 function hide(id){const el=document.getElementById(id);if(el)el.classList.remove("active");}
 function setLoader(msg){document.getElementById("loader-msg").textContent=msg;document.getElementById("loader").style.display="flex";}
+function generateDepositQR() {
+  const address = document.getElementById("dep-addr").textContent;
+  const pid = document.getElementById("dep-pid").textContent;
+  if (!address || address === "Loading..." || address === "—") return;
+  if (!pid || pid === "—") return;
+
+  const el = document.getElementById("dep-qr");
+  if (!el) return;
+  el.innerHTML = ""; // clear old QR
+
+  // Tron deep link format — supported by TronLink, imToken, Binance
+  // tron:ADDRESS?memo=PAYMENT_ID
+  const qrData = `tron:${address}?memo=${pid}`;
+
+  new QRCode(el, {
+    text: qrData,
+    width: 200,
+    height: 200,
+    colorDark: "#000000",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.M,
+  });
+}
+
 function copyPid(){
   const txt=document.getElementById("dep-pid").textContent;
   if(!txt||txt==="—") return toast("⚠️ Payment ID not loaded yet","error");
@@ -1389,6 +1506,10 @@ async function refreshDeposit() {
     const wallet = await api("GET", "/api/wallet", null, token);
     S.wallet = wallet;
     updateWalletUI();
+    // Update payment ID displays and regenerate QR
+    const pid = wallet.paymentId || S.profile?.paymentId || "—";
+    ["dep-pid","dep-pid2"].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=pid;});
+    generateDepositQR();
   } catch(e) { console.warn("Deposit refresh:", e); }
 }
 
@@ -1397,6 +1518,196 @@ function populateWithdraw() {
   // Update KYC warning if shown
   const kycEl = document.getElementById("kkyc");
   if (kycEl) kycEl.innerHTML = kycTag(p.kycStatus);
+}
+
+async function loadAllUsers() {
+  const el = document.getElementById("utbody");
+  if (!el) return;
+  el.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">Loading...</td></tr>';
+  try {
+    const token = await S.user.getIdToken();
+    const resp = await api("GET", "/api/admin?action=users-with-wallets", null, token);
+    const users = Array.isArray(resp) ? resp : (resp.items || []);
+    if (!users.length) {
+      el.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">No users yet</td></tr>';
+      return;
+    }
+    renderUsers(users);
+  } catch(e) {
+    el.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--danger)">Error: ' + e.message + '</td></tr>';
+  }
+}
+
+async function deleteUser(uid, name) {
+  if (!confirm(`⚠️ DELETE "${name}"?
+
+This permanently deletes:
+• Profile & wallet
+• All transactions
+• All withdrawals
+• KYC data
+• Firebase Auth account
+
+This CANNOT be undone!`)) return;
+  const confirmName = prompt(`Type "${name}" to confirm deletion:`);
+  if (confirmName !== name) return toast("❌ Name didn't match — cancelled", "error");
+  try {
+    const token = await S.user.getIdToken();
+    const r = await fetch(`/api/admin?action=delete-user&uid=${uid}`, { method:"DELETE", headers:{"Authorization":"Bearer "+token} });
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error);
+    toast("🗑️ User deleted successfully", "success");
+    loadAdmin(); loadBalanceUsers(); loadAllUsers();
+  } catch(e) { toast("❌ " + e.message, "error"); }
+}
+
+// ── PROFILE FEATURES ─────────────────────────────────────────
+
+const AVATARS = ["🦊","🐯","🦁","🐻","🐼","🦄","🐲","🦋","🐬","🦅","🎭","🚀","⚡","🔥","💎","🎯"];
+
+function initAvatarPicker() {
+  const container = document.getElementById("avatar-options");
+  if (!container) return;
+  container.innerHTML = AVATARS.map(emoji => `
+    <div onclick="selectAvatar('${emoji}')" style="width:44px;height:44px;border-radius:50%;background:var(--surface);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">${emoji}</div>
+  `).join("");
+}
+
+async function selectAvatar(emoji) {
+  document.getElementById("pav").textContent = emoji;
+  document.getElementById("top-av").textContent = emoji;
+  document.getElementById("avatar-picker").style.display = "none";
+  // Save to profile
+  try {
+    const token = await S.user.getIdToken();
+    await api("PATCH", "/api/auth", { avatar: emoji }, token);
+    S.profile.avatar = emoji;
+    toast("✅ Avatar updated!", "success");
+  } catch(e) { toast("❌ " + e.message, "error"); }
+}
+
+function loadNotifPrefs() {
+  const prefs = JSON.parse(localStorage.getItem("zap-notif-prefs") || "{}");
+  ["notif-deposit","notif-withdraw","notif-kyc","notif-rate"].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const checked = id in prefs ? prefs[id] : (id !== "notif-rate");
+    el.checked = checked;
+    updateToggleUI(id, checked);
+  });
+}
+
+function toggleNotif(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.checked = !el.checked;
+  updateToggleUI(id, el.checked);
+  saveNotifPrefs();
+}
+
+function saveNotifPrefs() {
+  const prefs = {};
+  ["notif-deposit","notif-withdraw","notif-kyc","notif-rate"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) prefs[id] = el.checked;
+  });
+  localStorage.setItem("zap-notif-prefs", JSON.stringify(prefs));
+  toast("✅ Preferences saved!", "success");
+}
+
+function updateToggleUI(id, checked) {
+  const track = document.getElementById(id+"-track");
+  const thumb = document.getElementById(id+"-thumb");
+  if (track) track.style.background = checked ? "var(--accent)" : "var(--border2)";
+  if (thumb) thumb.style.transform = checked ? "translateX(18px)" : "translateX(0)";
+}
+
+async function loadActivityLog() {
+  const el = document.getElementById("activity-log");
+  if (!el) return;
+  try {
+    const token = await S.user.getIdToken();
+    const [deps, wits] = await Promise.all([
+      api("GET", "/api/deposit?history=1", null, token),
+      api("GET", "/api/withdraw", null, token),
+    ]);
+
+    const activities = [];
+
+    // Add deposit activities
+    deps.slice(0,5).forEach(d => {
+      let ts = d.createdAt?.seconds||d.createdAt?._seconds;
+      activities.push({
+        icon: "⬇",
+        color: "var(--accent)",
+        label: d.adminAction ? "Admin credited balance" : "USDT Deposit",
+        detail: `+${parseFloat(d.amountUSDT||0).toFixed(2)} USDT`,
+        ts: ts ? new Date(ts*1000) : null,
+      });
+    });
+
+    // Add withdrawal activities
+    wits.slice(0,5).forEach(w => {
+      let ts = w.createdAt?.seconds||w.createdAt?._seconds;
+      const statusIcon = w.status==="approved"?"✅":w.status==="rejected"?"❌":"⏳";
+      activities.push({
+        icon: "⬆",
+        color: "var(--danger)",
+        label: `INR Withdrawal ${statusIcon}`,
+        detail: `−${parseFloat(w.amountUSDT||0).toFixed(2)} USDT → ₹${parseFloat(w.netINR||0).toLocaleString("en-IN")}`,
+        ts: ts ? new Date(ts*1000) : null,
+      });
+    });
+
+    // Add account creation
+    const createdTs = S.profile?.createdAt?.seconds || S.profile?.createdAt?._seconds;
+    if (createdTs) {
+      activities.push({
+        icon: "🎉",
+        color: "var(--gold)",
+        label: "Account Created",
+        detail: "Welcome to ZAP-CASH!",
+        ts: new Date(createdTs*1000),
+      });
+    }
+
+    // Sort by time desc
+    activities.sort((a,b) => (b.ts||0) - (a.ts||0));
+
+    if (!activities.length) {
+      el.innerHTML = '<div class="empty-state"><div class="es-icon">📋</div><div class="es-txt">No activity yet</div></div>';
+      return;
+    }
+
+    el.innerHTML = activities.map(a => `
+      <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+        <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${a.icon}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600">${a.label}</div>
+          <div style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-top:1px">${a.detail}</div>
+        </div>
+        <div style="font-size:10px;color:var(--text3);text-align:right;flex-shrink:0">${a.ts?a.ts.toLocaleString("en-IN",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:true}):"—"}</div>
+      </div>`).join("");
+  } catch(e) { el.innerHTML = '<div style="color:var(--danger);padding:20px;text-align:center">Failed to load</div>'; }
+}
+
+function populateProfile() {
+  const p = S.profile || {};
+  const name = p.firstName || p.name || S.user?.displayName || "User";
+  // Set avatar — emoji or initial
+  const av = document.getElementById("pav");
+  if (av) av.textContent = p.avatar || (name[0]||"U").toUpperCase();
+  const topAv = document.getElementById("top-av");
+  if (topAv) topAv.textContent = p.avatar || (name[0]||"U").toUpperCase();
+  // Member since
+  const ms = document.getElementById("p-member-since");
+  if (ms) {
+    const ts = p.createdAt?.seconds || p.createdAt?._seconds;
+    ms.textContent = ts ? "Member since " + new Date(ts*1000).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}) : "";
+  }
+  initAvatarPicker();
+  loadNotifPrefs();
+  loadActivityLog();
 }
 
 function gp(name,el){
@@ -1414,6 +1725,7 @@ function gp(name,el){
   if(name==="admin"&&S.isAdmin) loadAdmin();
   if(name==="users"&&S.isAdmin) loadAllUsers?.();
   if(name==="deposit")     refreshDeposit();
+  if(name==="profile")     populateProfile();
 }
 function gpm(name,el){gp(name,null);document.querySelectorAll(".mni").forEach(m=>m.classList.remove("active"));el.classList.add("active");}
 document.getElementById("req-modal").addEventListener("click",e=>{if(e.target===document.getElementById("req-modal"))closeModal();});

@@ -7,10 +7,11 @@ const { verifyToken, handle } = require("../lib/middleware");
 const Joi = require("joi");
 
 const profileSchema = Joi.object({
-  name:  Joi.string().min(2).max(80).optional(),
-  email: Joi.string().email({ tlds: { allow: false } }).optional(),
-  dob:   Joi.string().pattern(/^\d{2}\/\d{2}\/\d{4}$/).optional()
-           .messages({ "string.pattern.base": "dob must be DD/MM/YYYY" }),
+  name:   Joi.string().min(2).max(80).optional(),
+  email:  Joi.string().email({ tlds: { allow: false } }).optional(),
+  dob:    Joi.string().pattern(/^\d{2}\/\d{2}\/\d{4}$/).optional()
+            .messages({ "string.pattern.base": "dob must be DD/MM/YYYY" }),
+  avatar: Joi.string().max(10).optional(),
 }).min(1).messages({ "object.min": "Nothing to update" });
 
 async function generatePaymentId() {
