@@ -118,7 +118,8 @@ module.exports = async (req, res) => {
           const wSnap = await db.collection("wallets").doc(matchedUid).get();
           const u = uSnap.data() || {};
           const newBalance = wSnap.exists ? wSnap.data().balance.toFixed(2) : amountUSDT.toFixed(2);
-          if (u.email) sendDepositConfirmed({
+          const depNotif = (u.notifPrefs || {})["notif-deposit"] !== false;
+          if (u.email && depNotif) sendDepositConfirmed({
             to: u.email, name: u.name||u.email||"User",
             amountUSDT: amountUSDT.toFixed(2), txHash,
             newBalance, paymentId: matchedPid,

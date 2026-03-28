@@ -104,8 +104,10 @@ module.exports = handle(async (req, res) => {
     });
     const u=(await db.collection("users").doc(wData.uid).get()).data()||{};
     fetch(SHEET_WEBHOOK,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"approved",wid:id,name:u.name||u.email||"",email:u.email||"",phone:u.phone||"",amountUSDT:wData.amountUSDT,rate:wData.rate,grossINR:wData.grossINR,feeINR:wData.feeINR,netINR:wData.netINR,bank:wData.bank,utr,note,approvedAt:Date.now()})}).catch(e=>console.error("Sheet:",e));
-    // Send approval email
-    if (u.email) sendWithdrawalApproved({
+    // Send approval email (check notif prefs)
+    const notifPrefs = u.notifPrefs || {};
+    const sendWitEmail = notifPrefs["notif-withdraw"] !== false; // default true
+    if (u.email && sendWitEmail) sendWithdrawalApproved({
       to: u.email, name: u.name||u.email||"User",
       amountUSDT: wData.amountUSDT, netINR: wData.netINR,
       utr, bank: wData.bank,
@@ -131,8 +133,10 @@ module.exports = handle(async (req, res) => {
     });
     const u=(await db.collection("users").doc(wData.uid).get()).data()||{};
     fetch(SHEET_WEBHOOK,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"rejected",wid:id,name:u.name||u.email||"",email:u.email||"",phone:u.phone||"",amountUSDT:wData.amountUSDT,netINR:wData.netINR,bank:wData.bank,reason,note,rejectedAt:Date.now()})}).catch(e=>console.error("Sheet:",e));
-    // Send rejection email + get updated balance
-    if (u.email) {
+    // Send rejection email (check notif prefs)
+    const notifPrefsR = u.notifPrefs || {};
+    const sendRejEmail = notifPrefsR["notif-withdraw"] !== false;
+    if (u.email && sendRejEmail) {
       const wSnap = await db.collection("wallets").doc(wData.uid).get();
       const newBal = wSnap.exists ? (wSnap.data().balance||0).toFixed(2) : "—";
       sendWithdrawalRejected({

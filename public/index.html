@@ -375,22 +375,11 @@ input::placeholder{color:var(--text3);}
         </div>
         <div class="panel" id="panel-withdraw">
           <div class="rate-bar"><div><div class="rlbl">Withdrawal Rate</div><div class="rval">₹<span id="wit-rate">—</span></div></div><span style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace">Avail: <span id="wit-avail">—</span></span></div>
-          <div id="bank-saved" style="display:none;margin-bottom:14px">
-            <div style="background:linear-gradient(135deg,#0d1a30,#0a1520);border:1px solid rgba(14,165,233,.25);border-radius:16px;padding:20px">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:13px">
-                <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent2)">Saved Bank Account</span>
-                <button class="btn btn-xs btn-o" onclick="showBankForm()">✏️ Edit</button>
-              </div>
-              <div style="display:flex;gap:18px;flex-wrap:wrap">
-                <div><div style="font-size:9px;color:var(--text3);margin-bottom:2px">HOLDER</div><div style="font-weight:600;font-family:'IBM Plex Mono',monospace;font-size:13px" id="sv-n">—</div></div>
-                <div><div style="font-size:9px;color:var(--text3);margin-bottom:2px">ACCOUNT</div><div style="font-weight:600;font-family:'IBM Plex Mono',monospace;font-size:13px" id="sv-a">—</div></div>
-                <div><div style="font-size:9px;color:var(--text3);margin-bottom:2px">IFSC</div><div style="font-weight:600;font-family:'IBM Plex Mono',monospace;font-size:13px" id="sv-i">—</div></div>
-                <div><div style="font-size:9px;color:var(--text3);margin-bottom:2px">BANK</div><div style="font-weight:600;font-family:'IBM Plex Mono',monospace;font-size:13px" id="sv-b">—</div></div>
-              </div>
-            </div>
-          </div>
-          <div id="bank-form" class="card" style="margin-bottom:14px">
-            <div style="font-size:13px;font-weight:700;margin-bottom:14px">🏦 Bank Account Details</div>
+          <!-- Multiple Bank Accounts -->
+          <div id="bank-accounts-list" style="margin-bottom:14px"></div>
+          <button class="btn btn-o" id="add-bank-btn" style="margin-bottom:14px" onclick="toggleBankForm()">➕ Add Bank Account</button>
+          <div id="bank-form" class="card" style="display:none;margin-bottom:14px">
+            <div style="font-size:13px;font-weight:700;margin-bottom:14px">🏦 Add Bank Account</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
               <div class="field" style="margin:0"><label>Holder Name</label><input type="text" id="bf-n" placeholder="As per bank"></div>
               <div class="field" style="margin:0"><label>Bank Name</label><input type="text" id="bf-b" placeholder="HDFC Bank"></div>
@@ -403,7 +392,10 @@ input::placeholder{color:var(--text3);}
               <div class="field" style="margin:0"><label>IFSC Code</label><input type="text" id="bf-i" placeholder="HDFC0001234" style="text-transform:uppercase"></div>
               <div class="field" style="margin:0"><label>Account Type</label><select id="bf-t"><option value="savings">Savings</option><option value="current">Current</option></select></div>
             </div>
-            <button class="btn btn-p" id="save-bank-btn" style="margin-top:14px" onclick="saveBank()">Save Bank Details</button>
+            <div style="display:flex;gap:8px;margin-top:14px">
+              <button class="btn btn-p" id="save-bank-btn" onclick="saveBank()">Save Bank Account</button>
+              <button class="btn btn-o" style="width:auto;padding:13px 18px" onclick="toggleBankForm()">Cancel</button>
+            </div>
           </div>
           <div id="wit-form" style="display:none">
             <div class="card">
@@ -416,7 +408,7 @@ input::placeholder{color:var(--text3);}
               <div class="fee-box">
                 <div class="fee-row"><span>USDT Amount</span><span id="fu">0.00 USDT</span></div>
                 <div class="fee-row"><span>Exchange Rate</span><span id="fr">₹— / USDT</span></div>
-                <div class="fee-row"><span>Platform Fee (0.5%)</span><span id="ff">₹0.00</span></div>
+                <div class="fee-row"><span id="ff-label">Tax (selling app margin)</span><span id="ff">₹0.00</span></div>
                 <div class="fee-row"><span>You Receive</span><span id="fn" style="color:var(--accent)">₹0.00</span></div>
               </div>
               <button class="btn btn-p" id="wit-btn" onclick="submitWithdraw()">Request INR Withdrawal →</button>
@@ -585,11 +577,23 @@ input::placeholder{color:var(--text3);}
 
           <!-- Rate -->
           <div class="card" style="margin-bottom:16px">
-            <div style="font-size:13px;font-weight:700;margin-bottom:13px">⚙️ Exchange Rate</div>
-            <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap">
-              <div class="field" style="margin:0;flex:1;min-width:140px"><label>₹ per USDT</label><input type="number" id="ar" placeholder="87.42" step="0.01"></div>
-              <button class="btn btn-p btn-sm" style="padding:12px 18px" onclick="updateRate()">Update Rate</button>
+            <div style="font-size:13px;font-weight:700;margin-bottom:13px">⚙️ Rate Configuration</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+              <div class="field" style="margin:0">
+                <label>ZAP-CASH Rate (₹/USDT)</label>
+                <input type="number" id="ar" placeholder="95" step="0.01">
+                <div style="font-size:10px;color:var(--text3);margin-top:4px">Rate shown to users</div>
+              </div>
+              <div class="field" style="margin:0">
+                <label>Selling App Rate (₹/USDT)</label>
+                <input type="number" id="ar-selling" placeholder="105" step="0.01">
+                <div style="font-size:10px;color:var(--text3);margin-top:4px">Your app's buying rate (for payout calc)</div>
+              </div>
             </div>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px;font-size:12px;color:var(--text2)">
+              💡 <strong>Example:</strong> User withdraws 25 USDT × ₹<span id="rate-preview-zap">95</span> = ₹<span id="rate-preview-gross">2375</span> → floor(2375÷<span id="rate-preview-sell">105</span>) = <span id="rate-preview-whole">22</span> USDT → User gets ₹<span id="rate-preview-net">2310</span> · Tax: ₹<span id="rate-preview-tax">65</span>
+            </div>
+            <button class="btn btn-p btn-sm" style="padding:12px 18px" onclick="updateRate()">Update Rates</button>
           </div>
 
           <!-- Admin tabs -->
@@ -955,7 +959,7 @@ async function bootApp(fbUser) {
       api("GET","/api/rates"),
       api("GET","/api/auth",null,token),
     ]);
-    S.wallet=wallet; S.rate=rate; S.profile=profile;
+    S.wallet=wallet; S.rate=rate; S.profile=profile; if(!S.rate.sellingRate) S.rate.sellingRate=105;
     S.bank=profile.bank||null;
     const tr = await fbUser.getIdTokenResult();
     S.isAdmin = !!tr.claims.admin;
@@ -1073,7 +1077,11 @@ function populateAll() {
     if(numEl) numEl.value = num;
   }
   loadKYCPanel(p);
-  if (S.bank) showSavedBank(S.bank);
+  if (S.profile?.banks?.length) {
+    renderBankAccounts(S.profile.banks);
+  } else if (S.bank) {
+    showSavedBank(S.bank);
+  }
   loadRecentTx();
 }
 
@@ -1131,7 +1139,6 @@ async function loadRecentTx() {
           </div>
           <div style="display:flex;align-items:center;gap:8px">
             <span class="tag p">⏳ Pending Admin Review</span>
-            <button class="btn btn-xs btn-d" onclick="cancelWithdraw('${w.id}')">✕ Cancel</button>
           </div>
         </div>`).join("");
     } else {
@@ -1223,42 +1230,119 @@ function renderTxs(txs,id) {
   }).join("");
 }
 
-function showSavedBank(bank) {
-  document.getElementById("sv-n").textContent=bank.holderName;
-  document.getElementById("sv-a").textContent=bank.masked||bank.accountNo;
-  document.getElementById("sv-i").textContent=bank.ifsc;
-  document.getElementById("sv-b").textContent=bank.bankName;
-  document.getElementById("bank-saved").style.display="block";
-  document.getElementById("bank-form").style.display="none";
-  document.getElementById("wit-form").style.display="block";
+function renderBankAccounts(banks) {
+  const container = document.getElementById("bank-accounts-list");
+  if (!container) return;
+  if (!banks || !banks.length) {
+    container.innerHTML = "";
+    document.getElementById("wit-form").style.display = "none";
+    return;
+  }
+  container.innerHTML = banks.map((bank, i) => `
+    <div style="background:linear-gradient(135deg,#0d1a30,#0a1520);border:1px solid ${bank.isDefault?"rgba(0,240,160,.4)":"rgba(14,165,233,.25)"};border-radius:14px;padding:16px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent2)">🏦 ${bank.bankName}</span>
+          ${bank.isDefault ? '<span style="background:rgba(0,240,160,.1);color:var(--accent);border:1px solid rgba(0,240,160,.3);border-radius:4px;padding:1px 7px;font-size:10px;font-weight:700">DEFAULT</span>' : ""}
+        </div>
+        <div style="display:flex;gap:6px">
+          ${!bank.isDefault ? `<button class="btn btn-xs btn-o" onclick="setDefaultBank(${i})">Set Default</button>` : ""}
+          <button class="btn btn-xs btn-d" onclick="removeBank(${i})">🗑️</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:18px;flex-wrap:wrap">
+        <div><div style="font-size:9px;color:var(--text3);margin-bottom:2px">HOLDER</div><div style="font-weight:600;font-family:'IBM Plex Mono',monospace;font-size:12px">${bank.holderName}</div></div>
+        <div><div style="font-size:9px;color:var(--text3);margin-bottom:2px">ACCOUNT</div><div style="font-weight:600;font-family:'IBM Plex Mono',monospace;font-size:12px">${bank.masked||bank.accountNo}</div></div>
+        <div><div style="font-size:9px;color:var(--text3);margin-bottom:2px">IFSC</div><div style="font-weight:600;font-family:'IBM Plex Mono',monospace;font-size:12px">${bank.ifsc}</div></div>
+        <div><div style="font-size:9px;color:var(--text3);margin-bottom:2px">TYPE</div><div style="font-weight:600;font-family:'IBM Plex Mono',monospace;font-size:12px">${bank.accountType||"savings"}</div></div>
+      </div>
+    </div>`).join("");
+  // Show withdraw form if we have at least one bank
+  document.getElementById("wit-form").style.display = "block";
 }
 
-function showBankForm() {
-  document.getElementById("bank-saved").style.display="none";
-  document.getElementById("bank-form").style.display="block";
-  document.getElementById("wit-form").style.display="none";
+function toggleBankForm() {
+  const form = document.getElementById("bank-form");
+  form.style.display = form.style.display === "none" ? "block" : "none";
+  // Clear form
+  ["bf-n","bf-b","bf-i"].forEach(id => { const el=document.getElementById(id); if(el) el.value=""; });
+  ["bf-a","bf-a2"].forEach(id => { const el=document.getElementById(id); if(el) el.value=""; });
+}
+
+function showSavedBank(bank) {
+  // Legacy single bank — convert to array if needed
+  if (bank && !S.profile?.banks) {
+    S.bank = bank;
+    renderBankAccounts([{...bank, isDefault:true}]);
+  }
+}
+function showBankForm() { toggleBankForm(); }
+
+async function setDefaultBank(index) {
+  try {
+    const banks = S.profile?.banks || [];
+    banks.forEach((b,i) => b.isDefault = i===index);
+    const token = await S.user.getIdToken();
+    await api("POST", "/api/withdraw?bank=1", { banks }, token);
+    S.profile.banks = banks;
+    S.bank = banks[index];
+    renderBankAccounts(banks);
+    toast("✅ Default bank updated!", "success");
+  } catch(e) { toast("❌ "+e.message, "error"); }
+}
+
+async function removeBank(index) {
+  if (!confirm("Remove this bank account?")) return;
+  try {
+    const banks = (S.profile?.banks || []).filter((_,i) => i!==index);
+    if (banks.length > 0) banks[0].isDefault = true;
+    const token = await S.user.getIdToken();
+    await api("POST", "/api/withdraw?bank=1", { banks }, token);
+    S.profile.banks = banks;
+    S.bank = banks[0] || null;
+    renderBankAccounts(banks);
+    if (!banks.length) document.getElementById("wit-form").style.display = "none";
+    toast("🗑️ Bank account removed!", "success");
+  } catch(e) { toast("❌ "+e.message, "error"); }
 }
 
 async function saveBank() {
-  const n=v("bf-n"),b=v("bf-b"),a=v("bf-a"),a2=v("bf-a2"),i=v("bf-i").toUpperCase(),t=v("bf-t");
+  const n=v("bf-n"),b=v("bf-b"),a=v("bf-a"),a2=v("bf-a2"),i=v("bf-i").toUpperCase(),t=document.getElementById("bf-t")?.value||"savings";
   if(!n||!b||!a||!i) return toast("⚠️ Fill all fields","error");
   if(a!==a2) return toast("⚠️ Account numbers don't match","error");
   setBtnLoad("save-bank-btn",true);
   try {
     const token=await S.user.getIdToken();
-    const res=await api("POST","/api/withdraw?bank=1",{holderName:n,bankName:b,accountNo:a,ifsc:i,accountType:t},token);
-    S.bank=res.bank;showSavedBank(res.bank);toast("🏦 Bank details saved!","success");
+    const masked="•".repeat(a.length-4)+a.slice(-4);
+    const newBank={holderName:n,bankName:b,accountNo:a,masked,ifsc:i,accountType:t,isDefault:false};
+    const existing=S.profile?.banks||[];
+    if(existing.length===0) newBank.isDefault=true;
+    const banks=[...existing,newBank];
+    await api("POST","/api/withdraw?bank=1",{banks},token);
+    S.profile.banks=banks;
+    S.bank=banks.find(b=>b.isDefault)||banks[0];
+    renderBankAccounts(banks);
+    toggleBankForm();
+    toast("🏦 Bank account added!","success");
   } catch(e){toast("❌ "+e.message,"error");}
-  setBtnLoad("save-bank-btn",false,"Save Bank Details");
+  setBtnLoad("save-bank-btn",false,"Save Bank Account");
 }
 
 function calcW() {
-  const amt=parseFloat(v("wit-amt"))||0,r=S.rate?.inr||0,fee=S.rate?.feePct||0.005;
-  const gross=amt*r,feeA=gross*fee,net=gross-feeA;
-  document.getElementById("wit-conv").textContent="≈ ₹"+fi(gross);
+  const amt=parseFloat(v("wit-amt"))||0;
+  const r=S.rate?.inr||0;
+  const sellingRate=S.rate?.sellingRate||105;
+  const gross=amt*r;
+  const wholeUSDT=Math.floor(gross/sellingRate);
+  const net=wholeUSDT*sellingRate;
+  const tax=gross-net;
+  document.getElementById("wit-conv").textContent="≈ ₹"+fi(net);
   document.getElementById("fu").textContent=fu(amt)+" USDT";
-  document.getElementById("ff").textContent="₹"+fi(feeA);
+  document.getElementById("ff").textContent="₹"+fi(tax);
   document.getElementById("fn").textContent="₹"+fi(net);
+  // Update fee label
+  const ffLabel = document.getElementById("ff-label");
+  if(ffLabel) ffLabel.textContent="Tax (selling app margin)";
 }
 function setMax(){document.getElementById("wit-amt").value=(S.wallet?.balance||0).toFixed(2);calcW();}
 
@@ -1323,6 +1407,9 @@ async function loadAdmin(token) {
     document.getElementById("ad").textContent=fu(stats.totalUSDTDeposited);
     document.getElementById("ai").textContent="₹"+fi(stats.totalINRPaid);
     document.getElementById("ar").value=stats.rate;
+    const arSell = document.getElementById("ar-selling");
+    if(arSell) arSell.value=stats.sellingRate||105;
+    updateRatePreview();
     renderReqs(reqs);renderUsers(users);
   } catch(e){console.error("admin load:",e);}
 }
@@ -1369,16 +1456,43 @@ async function rejectReq() {
 
 async function updateRate() {
   const r=parseFloat(v("ar"));
-  if(!r||r<=0) return toast("⚠️ Enter valid rate","error");
+  const sr=parseFloat(v("ar-selling"));
+  if(!r||r<=0) return toast("⚠️ Enter valid ZAP-CASH rate","error");
+  if(!sr||sr<=0) return toast("⚠️ Enter valid selling app rate","error");
+  if(sr<=r) return toast("⚠️ Selling app rate must be higher than ZAP-CASH rate","error");
   try {
     const token=await S.user.getIdToken();
-    await api("POST","/api/rates",{inr:r},token);
+    await api("POST","/api/rates",{inr:r,sellingRate:sr},token);
     S.rate.inr=r;
+    S.rate.sellingRate=sr;
     document.getElementById("live-rate").textContent=r.toFixed(2);
     document.getElementById("dep-rate").textContent=r.toFixed(2);
     document.getElementById("wit-rate").textContent=r.toFixed(2);
-    toast("📈 Rate updated to ₹"+r.toFixed(2)+"/USDT","success");
+    updateRatePreview();
+    toast("📈 Rates updated! ZAP-CASH: ₹"+r.toFixed(2)+" · Selling: ₹"+sr.toFixed(2),"success");
   } catch(e){toast("❌ "+e.message,"error");}
+}
+
+function updateRatePreview() {
+  const zap = parseFloat(document.getElementById("ar")?.value)||95;
+  const sell = parseFloat(document.getElementById("ar-selling")?.value)||105;
+  const example = 25;
+  const gross = example * zap;
+  const whole = Math.floor(gross / sell);
+  const net = whole * sell;
+  const tax = gross - net;
+  const z=document.getElementById("rate-preview-zap");
+  const g=document.getElementById("rate-preview-gross");
+  const s=document.getElementById("rate-preview-sell");
+  const w=document.getElementById("rate-preview-whole");
+  const n=document.getElementById("rate-preview-net");
+  const t=document.getElementById("rate-preview-tax");
+  if(z)z.textContent=zap;
+  if(g)g.textContent=gross.toFixed(0);
+  if(s)s.textContent=sell;
+  if(w)w.textContent=whole;
+  if(n)n.textContent=net.toFixed(0);
+  if(t)t.textContent=tax.toFixed(0);
 }
 
 function renderUsers(users) {
@@ -1607,9 +1721,11 @@ async function refreshWithdraw() {
       api("GET", "/api/wallet", null, token),
       api("GET", "/api/auth", null, token),
     ]);
-    S.wallet = wallet; S.profile = profile; S.bank = profile.bank || null;
+    S.wallet = wallet; S.profile = profile;
+    S.bank = profile.banks?.[0] || profile.bank || null;
+    if(profile.banks?.length) renderBankAccounts(profile.banks);
+    else if(profile.bank) showSavedBank(profile.bank);
     updateWalletUI();
-    // Re-render withdraw panel with latest KYC & balance
     const p = document.getElementById("panel-withdraw");
     if (p) populateWithdraw();
   } catch(e) { console.warn("Withdraw refresh:", e); }
@@ -1712,7 +1828,10 @@ async function selectAvatar(emoji) {
 }
 
 function loadNotifPrefs() {
-  const prefs = JSON.parse(localStorage.getItem("zap-notif-prefs") || "{}");
+  // Merge Firestore prefs with localStorage (Firestore takes priority)
+  const localPrefs = JSON.parse(localStorage.getItem("zap-notif-prefs") || "{}");
+  const serverPrefs = S.profile?.notifPrefs || {};
+  const prefs = { ...localPrefs, ...serverPrefs };
   ["notif-deposit","notif-withdraw","notif-kyc","notif-rate"].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
@@ -1730,14 +1849,21 @@ function toggleNotif(id) {
   saveNotifPrefs();
 }
 
-function saveNotifPrefs() {
+async function saveNotifPrefs() {
   const prefs = {};
   ["notif-deposit","notif-withdraw","notif-kyc","notif-rate"].forEach(id => {
     const el = document.getElementById(id);
     if (el) prefs[id] = el.checked;
   });
   localStorage.setItem("zap-notif-prefs", JSON.stringify(prefs));
-  toast("✅ Preferences saved!", "success");
+  // Save to Firestore so backend can check before sending emails
+  try {
+    const token = await S.user.getIdToken();
+    await api("PATCH", "/api/auth", { notifPrefs: prefs }, token);
+    toast("✅ Preferences saved!", "success");
+  } catch(e) {
+    toast("✅ Preferences saved locally!", "success");
+  }
 }
 
 function updateToggleUI(id, checked) {

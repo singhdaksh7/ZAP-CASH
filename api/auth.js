@@ -5,6 +5,7 @@
 const { admin, db } = require("../lib/firebase");
 const { verifyToken, handle } = require("../lib/middleware");
 const Joi = require("joi");
+const { sendWelcome } = require("../lib/email");
 
 const profileSchema = Joi.object({
   name:         Joi.string().min(2).max(80).optional(),
@@ -12,6 +13,8 @@ const profileSchema = Joi.object({
   dob:          Joi.string().pattern(/^\d{2}\/\d{2}\/\d{4}$/).optional()
                   .messages({ "string.pattern.base": "dob must be DD/MM/YYYY" }),
   avatar:       Joi.string().max(10).optional(),
+  banks:        Joi.array().optional(),
+  notifPrefs:   Joi.object().optional(),
   phone:        Joi.string().max(20).optional(),
   pendingEmail: Joi.string().email({ tlds: { allow: false } }).optional(),
   emailOtp:     Joi.string().max(10).optional(),
@@ -58,6 +61,10 @@ module.exports = handle(async (req, res) => {
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
       await batch.commit();
+      // Send welcome email
+      const userEmail = user.email || req.body?.email;
+      const userName  = req.body?.name || user.email || "there";
+      if (userEmail) sendWelcome(userEmail, userName, paymentId).catch(()=>{});
       return res.json({ isNew: true, uid: user.uid, phone: user.phone_number || "", email: user.email || "", paymentId });
     }
 
