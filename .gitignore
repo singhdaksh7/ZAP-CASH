@@ -6,3 +6,5 @@ service-account.json
 service-account.json.json
 *.log
 cryptokash-vercel/
+"migrate-addresses.js" 
+".claude/" 
