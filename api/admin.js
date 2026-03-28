@@ -3,6 +3,7 @@
  */
 
 const { admin, db } = require("../lib/firebase");
+const { sendWithdrawalApproved, sendWithdrawalRejected, sendKYCVerified, sendKYCRejected } = require("../lib/email");
 const { verifyAdmin, handle } = require("../lib/middleware");
 const { DEFAULT_RATE, SHEET_WEBHOOK } = require("../lib/constants");
 
@@ -103,6 +104,13 @@ module.exports = handle(async (req, res) => {
     });
     const u=(await db.collection("users").doc(wData.uid).get()).data()||{};
     fetch(SHEET_WEBHOOK,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"approved",wid:id,name:u.name||u.email||"",email:u.email||"",phone:u.phone||"",amountUSDT:wData.amountUSDT,rate:wData.rate,grossINR:wData.grossINR,feeINR:wData.feeINR,netINR:wData.netINR,bank:wData.bank,utr,note,approvedAt:Date.now()})}).catch(e=>console.error("Sheet:",e));
+    // Send approval email
+    if (u.email) sendWithdrawalApproved({
+      to: u.email, name: u.name||u.email||"User",
+      amountUSDT: wData.amountUSDT, netINR: wData.netINR,
+      utr, bank: wData.bank,
+      date: new Date().toLocaleString("en-IN",{timeZone:"Asia/Kolkata"}),
+    }).catch(e=>console.error("Email:",e));
     return res.json({ ok:true });
   }
 
@@ -123,6 +131,15 @@ module.exports = handle(async (req, res) => {
     });
     const u=(await db.collection("users").doc(wData.uid).get()).data()||{};
     fetch(SHEET_WEBHOOK,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"rejected",wid:id,name:u.name||u.email||"",email:u.email||"",phone:u.phone||"",amountUSDT:wData.amountUSDT,netINR:wData.netINR,bank:wData.bank,reason,note,rejectedAt:Date.now()})}).catch(e=>console.error("Sheet:",e));
+    // Send rejection email + get updated balance
+    if (u.email) {
+      const wSnap = await db.collection("wallets").doc(wData.uid).get();
+      const newBal = wSnap.exists ? (wSnap.data().balance||0).toFixed(2) : "—";
+      sendWithdrawalRejected({
+        to: u.email, name: u.name||u.email||"User",
+        amountUSDT: wData.amountUSDT, reason, refundedBalance: newBal,
+      }).catch(e=>console.error("Email:",e));
+    }
     return res.json({ ok:true });
   }
 

@@ -5,6 +5,7 @@
  */
 
 const { admin, db } = require("../../lib/firebase");
+const { sendDepositConfirmed } = require("../../lib/email");
 
 const MASTER_ADDRESS  = "TKndaoEv14h3h9m6LWKXhkDe37w54jfmEz";
 const TRONGRID_KEY    = process.env.TRONGRID_API_KEY || "";
@@ -111,6 +112,29 @@ module.exports = async (req, res) => {
 
         credited++;
         console.log(`✅ Credited ${amountUSDT} USDT to ${matchedUid} (${matchedPid}) tx: ${txHash}`);
+        // Send deposit email
+        try {
+          const uSnap = await db.collection("users").doc(matchedUid).get();
+          const wSnap = await db.collection("wallets").doc(matchedUid).get();
+          const u = uSnap.data() || {};
+          const newBalance = wSnap.exists ? wSnap.data().balance.toFixed(2) : amountUSDT.toFixed(2);
+          if (u.email) sendDepositConfirmed({
+            to: u.email, name: u.name||u.email||"User",
+            amountUSDT: amountUSDT.toFixed(2), txHash,
+            newBalance, paymentId: matchedPid,
+            date: new Date().toLocaleString("en-IN",{timeZone:"Asia/Kolkata"}),
+          }).catch(e=>console.error("Email:",e));
+        } catch(e) { console.error("Email prep error:", e.message); }
+        // Send deposit confirmation email
+        try {
+          const depUserSnap = await db.collection("users").doc(matchedUid).get();
+          const depWalletSnap = await db.collection("wallets").doc(matchedUid).get();
+          const depUser = depUserSnap.data() || {};
+          const newBalance = (depWalletSnap.data()?.balance || 0) + amountUSDT;
+          const rateSnap = await db.collection("config").doc("rate").get();
+          const rate = rateSnap.exists ? rateSnap.data().inr : 87.42;
+          if (depUser.email) sendDepositConfirmed(depUser.email, depUser.name || depUser.email, { amountUSDT, paymentId: matchedPid, newBalance, rate }).catch(()=>{});
+        } catch(emailErr) { console.warn("Deposit email error:", emailErr.message); }
 
       } catch(e) {
         errors++;
