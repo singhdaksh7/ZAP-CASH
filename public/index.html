@@ -690,6 +690,55 @@ input::placeholder{color:var(--text3);}
   </div>
 </div>
 
+<!-- User Detail Modal -->
+<div class="overlay" id="user-detail-modal">
+  <div class="modal" style="max-width:600px;max-height:90vh;overflow-y:auto">
+    <div class="mbody">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#000" id="ud-av">?</div>
+          <div>
+            <div style="font-size:18px;font-weight:800" id="ud-name">—</div>
+            <div style="font-size:12px;color:var(--text2);font-family:'IBM Plex Mono',monospace" id="ud-email">—</div>
+          </div>
+        </div>
+        <button onclick="closeUserDetail()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--text2);cursor:pointer;font-family:'Outfit',sans-serif">✕ Close</button>
+      </div>
+
+      <!-- Stats Row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px" id="ud-stats"></div>
+
+      <!-- Info Tabs -->
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+        <button class="btn btn-xs btn-p" onclick="udTab('info',this)">👤 Profile</button>
+        <button class="btn btn-xs btn-o" onclick="udTab('bank',this)">🏦 Bank</button>
+        <button class="btn btn-xs btn-o" onclick="udTab('txs',this)">📋 Transactions</button>
+        <button class="btn btn-xs btn-o" onclick="udTab('kyc',this)">🪪 KYC</button>
+      </div>
+
+      <!-- Profile Tab -->
+      <div id="ud-tab-info">
+        <div class="dtbl" id="ud-info-table"></div>
+      </div>
+
+      <!-- Bank Tab -->
+      <div id="ud-tab-bank" style="display:none">
+        <div class="dtbl" id="ud-bank-table"></div>
+      </div>
+
+      <!-- Transactions Tab -->
+      <div id="ud-tab-txs" style="display:none">
+        <div id="ud-txs-list"><div style="text-align:center;padding:20px;color:var(--text3)">Loading...</div></div>
+      </div>
+
+      <!-- KYC Tab -->
+      <div id="ud-tab-kyc" style="display:none">
+        <div class="dtbl" id="ud-kyc-table"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1341,7 +1390,8 @@ function renderUsers(users) {
       <td style="font-family:'IBM Plex Mono',monospace;color:var(--accent)">${fu(u.balance||u.walletBalance||0)} USDT</td>
       <td style="font-family:'IBM Plex Mono',monospace">${fu(u.totalDeposited||0)} USDT</td>
       <td style="color:var(--text3);font-size:11px">${u.createdAt?.seconds?new Date(u.createdAt.seconds*1000).toLocaleDateString("en-IN"):"—"}</td>
-      <td style="display:flex;gap:5px;align-items:center">
+      <td style="display:flex;gap:5px;align-items:center;flex-wrap:wrap">
+        <button class="btn btn-xs btn-o" onclick="viewUserDetail('${u.uid||u.id}')">👁</button>
         <button class="btn btn-xs btn-p" onclick="quickEditBalance('${u.uid||u.id}','${(u.name||u.email||"User").replace(/'/g,"\'")}',${fu(u.balance||0)})">✏️</button>
         <button class="btn btn-xs btn-d" onclick="deleteUser('${u.uid||u.id}','${(u.name||u.email||"User").replace(/'/g,"\'")}')">🗑️</button>
       </td>
@@ -1806,6 +1856,139 @@ function handleDobKey(e, el) {
   }
 }
 
+// ── USER DETAIL MODAL ─────────────────────────────────────────
+let _udUid = null;
+
+async function viewUserDetail(uid) {
+  _udUid = uid;
+  document.getElementById("user-detail-modal").classList.add("show");
+  document.getElementById("ud-av").textContent = "...";
+  document.getElementById("ud-name").textContent = "Loading...";
+  document.getElementById("ud-email").textContent = "";
+  document.getElementById("ud-stats").innerHTML = "";
+  document.getElementById("ud-info-table").innerHTML = "";
+  document.getElementById("ud-txs-list").innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3)">Loading...</div>';
+
+  try {
+    const token = await S.user.getIdToken();
+    const [user, walletResp, txResp, witResp] = await Promise.all([
+      api("GET", `/api/admin?action=user&uid=${uid}`, null, token),
+      api("GET", `/api/admin?action=users-with-wallets`, null, token),
+      fetch(`/api/admin?action=user-txs&uid=${uid}`, {headers:{"Authorization":"Bearer "+token}}).then(r=>r.json()).catch(()=>({items:[]})),
+      fetch(`/api/admin?action=user-wits&uid=${uid}`, {headers:{"Authorization":"Bearer "+token}}).then(r=>r.json()).catch(()=>[]),
+    ]);
+
+    // Get wallet from users-with-wallets
+    const allUsers = Array.isArray(walletResp) ? walletResp : (walletResp.items||[]);
+    const wallet = allUsers.find(u=>u.uid===uid) || {};
+
+    const av = user.avatar || (user.name||user.email||"U")[0].toUpperCase();
+    document.getElementById("ud-av").textContent = av;
+    document.getElementById("ud-name").textContent = user.name || user.email || "Unknown";
+    document.getElementById("ud-email").textContent = user.email || user.phone || "—";
+
+    // Stats
+    document.getElementById("ud-stats").innerHTML = [
+      {l:"Balance", v:fu(wallet.balance||0)+" USDT", c:"g"},
+      {l:"Deposited", v:fu(wallet.totalDeposited||0)+" USDT", c:"b"},
+      {l:"Withdrawn", v:fu(wallet.totalWithdrawn||0)+" USDT", c:""},
+    ].map(s=>`
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center">
+        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">${s.l}</div>
+        <div style="font-size:16px;font-weight:800;font-family:'IBM Plex Mono',monospace;color:${s.c==="g"?"var(--accent)":s.c==="b"?"var(--accent2)":"var(--text)"}">${s.v}</div>
+      </div>`).join("");
+
+    // Profile tab
+    const joined = user.createdAt?._seconds ? new Date(user.createdAt._seconds*1000).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}) : "—";
+    document.getElementById("ud-info-table").innerHTML = [
+      ["Full Name",    user.name||"—"],
+      ["Email",        user.email||"—"],
+      ["Phone",        user.phone||"—"],
+      ["Payment ID",   user.paymentId||wallet.paymentId||"—"],
+      ["KYC Status",   kycTag(user.kycStatus)],
+      ["Joined",       joined],
+    ].map(([k,v])=>`<div class="dtr"><span class="dk">${k}</span><span class="dv">${v}</span></div>`).join("");
+
+    // Bank tab
+    const bank = user.bank;
+    document.getElementById("ud-bank-table").innerHTML = bank ? [
+      ["Account Holder", bank.holderName||"—"],
+      ["Bank Name",      bank.bankName||"—"],
+      ["Account No.",    bank.masked||"—"],
+      ["IFSC Code",      bank.ifsc||"—"],
+      ["Account Type",   bank.accountType||"savings"],
+    ].map(([k,v])=>`<div class="dtr"><span class="dk">${k}</span><span class="dv">${v}</span></div>`).join("")
+    : '<div class="empty-state"><div class="es-icon">🏦</div><div class="es-txt">No bank details saved</div></div>';
+
+    // KYC tab
+    const kyc = user.kyc;
+    document.getElementById("ud-kyc-table").innerHTML = kyc ? [
+      ["Status",     kycTag(kyc.status)],
+      ["First Name", kyc.firstName||"—"],
+      ["Last Name",  kyc.lastName||"—"],
+      ["PAN",        kyc.pan||"—"],
+      ["Aadhaar",    kyc.aadhaar||"—"],
+      ["DOB",        kyc.dob||"—"],
+    ].map(([k,v])=>`<div class="dtr"><span class="dk">${k}</span><span class="dv">${v}</span></div>`).join("")
+    : '<div class="empty-state"><div class="es-icon">🪪</div><div class="es-txt">No KYC submitted</div></div>';
+
+    // Transactions tab - combine deposits and withdrawals
+    const txs = Array.isArray(txResp) ? txResp : (txResp.items||[]);
+    const wits = Array.isArray(witResp) ? witResp : [];
+    const allTxs = [
+      ...txs.map(t=>({...t,_k:"dep"})),
+      ...wits.map(t=>({...t,_k:"wit"}))
+    ].sort((a,b)=>(b.createdAt?._seconds||b.createdAt?.seconds||0)-(a.createdAt?._seconds||a.createdAt?.seconds||0));
+
+    if (!allTxs.length) {
+      document.getElementById("ud-txs-list").innerHTML = '<div class="empty-state"><div class="es-icon">📭</div><div class="es-txt">No transactions yet</div></div>';
+    } else {
+      document.getElementById("ud-txs-list").innerHTML = allTxs.map(tx=>{
+        const dep = tx._k==="dep";
+        const ts = tx.createdAt?._seconds||tx.createdAt?.seconds;
+        const dt = ts ? new Date(ts*1000).toLocaleString("en-IN",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:true}) : "—";
+        const amt = fu(tx.amountUSDT||tx.amount||0);
+        let label = dep ? (tx.adminAction?"Admin Credit":"USDT Deposit") : "INR Withdrawal";
+        let statusBadge = tx.status==="confirmed"||tx.status==="paid"||tx.status==="approved"
+          ? '<span class="tag s">✓ Done</span>'
+          : tx.status==="pending" ? '<span class="tag p">⏳ Pending</span>'
+          : '<span class="tag f">✕ '+tx.status+'</span>';
+        return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+          <div style="width:34px;height:34px;border-radius:9px;background:${dep?"rgba(0,240,160,.1)":"rgba(239,68,68,.1)"};display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">${dep?"⬇":"⬆"}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600">${label}</div>
+            <div style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace">${dt}</div>
+            ${tx.utr ? `<div style="font-size:10px;color:var(--gold)">UTR: ${tx.utr}</div>` : ""}
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:13px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:${dep?"var(--accent)":"var(--danger)"}">${dep?"+":"-"}${amt} USDT</div>
+            <div style="margin-top:2px">${statusBadge}</div>
+          </div>
+        </div>`;
+      }).join("");
+    }
+
+  } catch(e) {
+    toast("❌ Failed to load user: "+e.message, "error");
+    closeUserDetail();
+  }
+}
+
+function udTab(tab, btn) {
+  ["info","bank","txs","kyc"].forEach(t => {
+    document.getElementById("ud-tab-"+t).style.display = t===tab ? "block" : "none";
+  });
+  document.querySelectorAll("#user-detail-modal .btn-xs").forEach(b => {
+    b.className = "btn btn-xs btn-o";
+  });
+  if (btn) btn.className = "btn btn-xs btn-p";
+}
+
+function closeUserDetail() {
+  document.getElementById("user-detail-modal").classList.remove("show");
+  _udUid = null;
+}
+
 function gp(name,el){
   document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
   document.querySelectorAll(".ni").forEach(n=>n.classList.remove("active"));
@@ -1829,6 +2012,7 @@ function closeMobMore(){document.getElementById("mob-more-menu").style.display="
 // Close more menu when clicking outside
 document.addEventListener("click",e=>{const menu=document.getElementById("mob-more-menu");if(menu&&menu.style.display!=="none"&&!menu.contains(e.target)&&!e.target.closest(".mni")){closeMobMore();}});
 document.getElementById("req-modal").addEventListener("click",e=>{if(e.target===document.getElementById("req-modal"))closeModal();});
+document.getElementById("user-detail-modal").addEventListener("click",e=>{if(e.target===document.getElementById("user-detail-modal"))closeUserDetail();});
 let toastT;
 function toast(msg,type="success"){const t=document.getElementById("toast");t.textContent=msg;t.className="toast "+type+" show";clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),3500);}
 </script>

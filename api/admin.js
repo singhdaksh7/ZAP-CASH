@@ -201,5 +201,17 @@ module.exports = handle(async (req, res) => {
     return res.json({ page, pageSize:limit, items:snap.docs.map(d=>({id:d.id,...d.data()})) });
   }
 
+  // ── USER TRANSACTIONS ──
+  if (action === "user-txs" && uid && req.method === "GET") {
+    const snap = await db.collection("transactions").where("uid","==",uid).orderBy("createdAt","desc").limit(50).get();
+    return res.json({ items: snap.docs.map(d=>({id:d.id,...d.data()})) });
+  }
+
+  // ── USER WITHDRAWALS ──
+  if (action === "user-wits" && uid && req.method === "GET") {
+    const snap = await db.collection("withdrawals").where("uid","==",uid).orderBy("createdAt","desc").limit(50).get();
+    return res.json(snap.docs.map(d=>({id:d.id,...d.data()})));
+  }
+
   res.status(400).json({ error:"Unknown action" });
 }, { maxReqs:120, windowMs:60_000 });
