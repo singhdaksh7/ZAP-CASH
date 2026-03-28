@@ -266,7 +266,7 @@ input::placeholder{color:var(--text3);}
       <div class="field" style="margin-top:10px"><label>Email</label><input type="email" id="kemail" placeholder="you@email.com"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div class="field" style="margin:0"><label>PAN Number</label><input type="text" id="kpan" placeholder="ABCDE1234F" maxlength="10" style="text-transform:uppercase"></div>
-        <div class="field" style="margin:0"><label>Date of Birth</label><input type="text" id="kdob" placeholder="DD/MM/YYYY"></div>
+        <div class="field" style="margin:0"><label>Date of Birth</label><input type="text" id="kdob" placeholder="DD/MM/YYYY" maxlength="10" oninput="formatDob(this)" onkeydown="handleDobKey(event,this)"></div>
       </div>
       <div class="field"><label>Aadhaar Number</label><input type="text" id="kaadh" placeholder="XXXX XXXX XXXX" maxlength="14"></div>
       <button class="btn btn-p" id="kyc-btn" onclick="submitKYC()">Submit KYC & Enter →</button>
@@ -450,7 +450,7 @@ input::placeholder{color:var(--text3);}
             <div class="field" style="margin-top:10px"><label>Email</label><input type="email" id="kemail2" placeholder="you@email.com"></div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
               <div class="field" style="margin:0"><label>PAN Number</label><input type="text" id="kpan2" placeholder="ABCDE1234F" maxlength="10" style="text-transform:uppercase"></div>
-              <div class="field" style="margin:0"><label>Date of Birth</label><input type="text" id="kdob2" placeholder="DD/MM/YYYY"></div>
+              <div class="field" style="margin:0"><label>Date of Birth</label><input type="text" id="kdob2" placeholder="DD/MM/YYYY" maxlength="10" oninput="formatDob(this)" onkeydown="handleDobKey(event,this)"></div>
             </div>
             <div class="field"><label>Aadhaar Number</label><input type="text" id="kaadh2" placeholder="XXXX XXXX XXXX" maxlength="14"></div>
             <button class="btn btn-p" id="kyc-submit-btn" onclick="submitKYCFromPanel()">Submit KYC →</button>
@@ -492,8 +492,35 @@ input::placeholder{color:var(--text3);}
               <div class="field" style="margin:0"><label>First Name</label><input type="text" id="pfn"></div>
               <div class="field" style="margin:0"><label>Last Name</label><input type="text" id="pln"></div>
             </div>
-            <div class="field" style="margin-top:10px;margin-bottom:0"><label>Email</label><input type="email" id="pemail"></div>
-            <button class="btn btn-sm btn-p" style="margin-top:13px;width:auto;padding:10px 22px" onclick="saveProfile()">Save Changes</button>
+            <div class="field" style="margin-top:10px">
+              <label>Phone Number</label>
+              <div style="display:flex;gap:8px">
+                <select id="p-phone-code" style="width:90px;flex-shrink:0">
+                  <option value="+91">🇮🇳 +91</option>
+                  <option value="+1">🇺🇸 +1</option>
+                  <option value="+44">🇬🇧 +44</option>
+                  <option value="+971">🇦🇪 +971</option>
+                  <option value="+65">🇸🇬 +65</option>
+                </select>
+                <input type="tel" id="p-phone" placeholder="9876543210" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'')">
+              </div>
+            </div>
+            <!-- Email change with OTP -->
+            <div class="field" style="margin-bottom:0">
+              <label>Email Address</label>
+              <div style="display:flex;gap:8px;align-items:flex-start">
+                <input type="email" id="pemail" style="flex:1">
+                <button class="btn btn-xs btn-o" id="verify-email-btn" style="padding:12px 14px;flex-shrink:0;white-space:nowrap" onclick="sendEmailOTP()">Verify →</button>
+              </div>
+              <div id="email-otp-section" style="display:none;margin-top:10px">
+                <div style="font-size:12px;color:var(--text2);margin-bottom:8px">📧 OTP sent to new email. Enter it below:</div>
+                <div style="display:flex;gap:8px">
+                  <input type="text" id="p-email-otp" placeholder="Enter OTP" maxlength="6" style="letter-spacing:4px;font-family:'IBM Plex Mono',monospace">
+                  <button class="btn btn-xs btn-p" style="padding:12px 14px;flex-shrink:0" onclick="verifyEmailOTP()">Confirm</button>
+                </div>
+              </div>
+            </div>
+            <button class="btn btn-sm btn-p" style="margin-top:14px;width:auto;padding:10px 22px" onclick="saveProfile()">Save Changes</button>
           </div>
 
           <!-- Notification Preferences -->
@@ -985,10 +1012,20 @@ function populateAll() {
   document.getElementById("pav").textContent=_av;
   document.getElementById("top-av").textContent=_av;
   document.getElementById("pname").textContent=p.name||name;
-  document.getElementById("pphone").textContent=S.user?.email||"—";
+  document.getElementById("pphone").textContent=p.phone||S.user?.email||"—";
   document.getElementById("pfn").value=p.firstName||"";
   document.getElementById("pln").value=p.lastName||"";
   document.getElementById("pemail").value=p.email||S.user?.email||"";
+  // Fill phone
+  if (p.phone) {
+    const codes = ["+971","+65","+44","+1","+91"];
+    const code = codes.find(c => p.phone.startsWith(c)) || "+91";
+    const num = p.phone.replace(code,"");
+    const codeEl = document.getElementById("p-phone-code");
+    const numEl = document.getElementById("p-phone");
+    if(codeEl) codeEl.value = code;
+    if(numEl) numEl.value = num;
+  }
   loadKYCPanel(p);
   if (S.bank) showSavedBank(S.bank);
   loadRecentTx();
@@ -1722,6 +1759,27 @@ function populateProfile() {
   initAvatarPicker();
   loadNotifPrefs();
   loadActivityLog();
+}
+
+// ── DOB Auto-formatter ───────────────────────────────────────
+function formatDob(el) {
+  let val = el.value.replace(/\D/g, "").slice(0, 8); // digits only, max 8
+  let formatted = "";
+  if (val.length >= 1) formatted = val.slice(0, 2);
+  if (val.length >= 3) formatted += "/" + val.slice(2, 4);
+  if (val.length >= 5) formatted += "/" + val.slice(4, 8);
+  el.value = formatted;
+}
+
+function handleDobKey(e, el) {
+  // Allow backspace to remove slash too
+  if (e.key === "Backspace") {
+    const v = el.value;
+    if (v.endsWith("/")) {
+      e.preventDefault();
+      el.value = v.slice(0, -1);
+    }
+  }
 }
 
 function gp(name,el){
