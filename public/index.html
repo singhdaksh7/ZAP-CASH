@@ -505,19 +505,16 @@ input::placeholder{color:var(--text3);}
                 <input type="tel" id="p-phone" placeholder="9876543210" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'')">
               </div>
             </div>
-            <!-- Email change with OTP -->
+            <!-- Email change -->
             <div class="field" style="margin-bottom:0">
               <label>Email Address</label>
-              <div style="display:flex;gap:8px;align-items:flex-start">
-                <input type="email" id="pemail" style="flex:1">
-                <button class="btn btn-xs btn-o" id="verify-email-btn" style="padding:12px 14px;flex-shrink:0;white-space:nowrap" onclick="sendEmailOTP()">Verify →</button>
-              </div>
-              <div id="email-otp-section" style="display:none;margin-top:10px">
-                <div style="font-size:12px;color:var(--text2);margin-bottom:8px">📧 OTP sent to new email. Enter it below:</div>
-                <div style="display:flex;gap:8px">
-                  <input type="text" id="p-email-otp" placeholder="Enter OTP" maxlength="6" style="letter-spacing:4px;font-family:'IBM Plex Mono',monospace">
-                  <button class="btn btn-xs btn-p" style="padding:12px 14px;flex-shrink:0" onclick="verifyEmailOTP()">Confirm</button>
-                </div>
+              <input type="email" id="pemail" style="opacity:0.7;cursor:not-allowed" readonly>
+              <div style="font-size:11px;color:var(--text3);margin-top:6px">📧 To change email, use the button below — a verification link will be sent.</div>
+              <button class="btn btn-xs btn-o" id="verify-email-btn" style="margin-top:8px" onclick="sendEmailChange()">✉️ Change Email</button>
+              <div id="email-change-form" style="display:none;margin-top:12px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px">
+                <div class="field" style="margin-bottom:10px"><label>New Email Address</label><input type="email" id="p-new-email" placeholder="newemail@example.com"></div>
+                <button class="btn btn-sm btn-p" onclick="confirmEmailChange()">Send Verification Link →</button>
+                <button class="btn btn-sm btn-o" style="margin-top:8px" onclick="document.getElementById('email-change-form').style.display='none'">Cancel</button>
               </div>
             </div>
             <button class="btn btn-sm btn-p" style="margin-top:14px;width:auto;padding:10px 22px" onclick="saveProfile()">Save Changes</button>
@@ -1229,6 +1226,33 @@ async function submitWithdraw() {
     S.wallet.balance-=amt;updateWalletUI();loadRecentTx();
   } catch(e){toast("❌ "+e.message,"error");}
   setBtnLoad("wit-btn",false,"Request INR Withdrawal →");
+}
+
+async function sendEmailChange() {
+  const form = document.getElementById("email-change-form");
+  form.style.display = form.style.display === "none" ? "block" : "none";
+}
+
+async function confirmEmailChange() {
+  const newEmail = v("p-new-email");
+  if (!newEmail) return toast("⚠️ Enter new email address", "error");
+  if (newEmail === (S.profile?.email || S.user?.email)) return toast("⚠️ This is already your current email", "error");
+
+  setBtnLoad("verify-email-btn", true, "Sending...");
+  try {
+    // Firebase sends a verification link to the new email
+    await S.user.verifyBeforeUpdateEmail(newEmail);
+    document.getElementById("email-change-form").style.display = "none";
+    document.getElementById("p-new-email").value = "";
+    toast("📧 Verification link sent to " + newEmail + ". Click the link to confirm the change.", "success");
+  } catch(e) {
+    if (e.code === "auth/requires-recent-login") {
+      toast("⚠️ Please log out and log back in, then try again", "error");
+    } else {
+      toast("❌ " + e.message, "error");
+    }
+  }
+  setBtnLoad("verify-email-btn", false, "✉️ Change Email");
 }
 
 async function saveProfile() {
