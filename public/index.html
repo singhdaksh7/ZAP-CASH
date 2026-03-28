@@ -632,8 +632,18 @@ input::placeholder{color:var(--text3);}
       <div class="mni active" onclick="gpm('dashboard',this)"><div class="mni-icon">🏠</div>Home</div>
       <div class="mni" onclick="gpm('deposit',this)"><div class="mni-icon">⬇</div>Deposit</div>
       <div class="mni" onclick="gpm('withdraw',this)"><div class="mni-icon">⬆</div>Withdraw</div>
-      <div class="mni" onclick="gpm('history',this)"><div class="mni-icon">📋</div>History</div>
-      <div class="mni" onclick="gpm('admin',this)"><div class="mni-icon">🛡</div>Admin<div class="mni-badge" id="mob-badge"></div></div>
+      <div class="mni" onclick="gpm('kyc',this)"><div class="mni-icon">🪪</div>KYC</div>
+      <div class="mni" onclick="toggleMobMore(this)"><div class="mni-icon">☰</div>More</div>
+    </div>
+    <!-- More menu -->
+    <div id="mob-more-menu" style="display:none;position:fixed;bottom:68px;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:8px 0;z-index:99">
+      <div id="mob-more-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px 12px">
+        <div class="mni" onclick="gpm('history',this);closeMobMore()" style="border-radius:10px"><div class="mni-icon">📋</div>History</div>
+        <div class="mni" onclick="gpm('profile',this);closeMobMore()" style="border-radius:10px"><div class="mni-icon">👤</div>Profile</div>
+      </div>
+      <div id="mob-adm-row" style="display:none;padding:0 12px 4px">
+        <div class="mni" id="mob-adm-nav" onclick="gpm('admin',this);closeMobMore()" style="border-radius:10px;width:100%"><div class="mni-icon">🛡</div>Admin<div class="mni-badge" id="mob-badge"></div></div>
+      </div>
     </div>
   </div>
 </div>
@@ -880,6 +890,10 @@ async function bootApp(fbUser) {
       document.getElementById("adm-sec").style.display="block";
       document.getElementById("adm-nav").style.display="flex";
       document.getElementById("usr-nav").style.display="flex";
+      const mobAdm = document.getElementById("mob-adm-nav");
+      if (mobAdm) mobAdm.style.display="flex";
+      const mobAdmRow = document.getElementById("mob-adm-row");
+      if (mobAdmRow) mobAdmRow.style.display="block";
     }
     populateAll();
     subscribeWallet(fbUser.uid);
@@ -1728,6 +1742,10 @@ function gp(name,el){
   if(name==="profile")     populateProfile();
 }
 function gpm(name,el){gp(name,null);document.querySelectorAll(".mni").forEach(m=>m.classList.remove("active"));el.classList.add("active");}
+function toggleMobMore(el){const m=document.getElementById("mob-more-menu");m.style.display=m.style.display==="none"?"block":"none";document.querySelectorAll(".mni").forEach(m=>m.classList.remove("active"));el.classList.add("active");}
+function closeMobMore(){document.getElementById("mob-more-menu").style.display="none";}
+// Close more menu when clicking outside
+document.addEventListener("click",e=>{const menu=document.getElementById("mob-more-menu");if(menu&&menu.style.display!=="none"&&!menu.contains(e.target)&&!e.target.closest(".mni")){closeMobMore();}});
 document.getElementById("req-modal").addEventListener("click",e=>{if(e.target===document.getElementById("req-modal"))closeModal();});
 let toastT;
 function toast(msg,type="success"){const t=document.getElementById("toast");t.textContent=msg;t.className="toast "+type+" show";clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),3500);}
