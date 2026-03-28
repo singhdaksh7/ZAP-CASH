@@ -287,9 +287,8 @@ input::placeholder{color:var(--text3);}
       <div class="nav-sec">Account</div>
       <div class="ni" onclick="gp('kyc',this)"><span class="ni-icon">🪪</span>KYC Status</div>
       <div class="ni" onclick="gp('profile',this)"><span class="ni-icon">👤</span>Profile</div>
-      <div class="nav-sec" id="adm-sec" style="display:none">Admin</div>
-      <div class="ni" id="adm-nav" onclick="gp('admin',this)" style="display:none"><span class="ni-icon">🛡</span>Admin Panel<span class="nbadge" id="nb">0</span></div>
-      <div class="ni" id="usr-nav" onclick="gp('users',this)" style="display:none"><span class="ni-icon">👥</span>All Users</div>
+      <div class="ni" onclick="gp('help',this)"><span class="ni-icon">💬</span>Help & Support</div>
+
       <div class="s-bot">
         <div class="ni" onclick="logout()" style="color:var(--danger)"><span class="ni-icon">🚪</span>Logout</div>
       </div>
@@ -567,90 +566,51 @@ input::placeholder{color:var(--text3);}
             <button class="btn btn-d" onclick="logout()">🚪 Logout</button>
           </div>
         </div>
-        <div class="panel" id="panel-admin">
-          <div class="kpi-row">
-            <div class="kpi"><div class="kpi-lbl">Total Users</div><div class="kpi-val g" id="au">—</div></div>
-            <div class="kpi"><div class="kpi-lbl">Pending Withdrawals</div><div class="kpi-val gold" id="ap">—</div></div>
-            <div class="kpi"><div class="kpi-lbl">USDT Deposited</div><div class="kpi-val b" id="ad">—</div></div>
-            <div class="kpi"><div class="kpi-lbl">INR Paid Out</div><div class="kpi-val" id="ai">—</div></div>
+        <div class="panel" id="panel-help">
+
+          <!-- Search -->
+          <div style="position:relative;margin-bottom:20px">
+            <input type="text" id="faq-search" placeholder="🔍 Search help articles..." oninput="filterFAQ(this.value)" style="padding-left:16px">
           </div>
 
-          <!-- Rate -->
+          <!-- FAQ Section -->
           <div class="card" style="margin-bottom:16px">
-            <div style="font-size:13px;font-weight:700;margin-bottom:13px">⚙️ Rate Configuration</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-              <div class="field" style="margin:0">
-                <label>ZAP-CASH Rate (₹/USDT)</label>
-                <input type="number" id="ar" placeholder="95" step="0.01">
-                <div style="font-size:10px;color:var(--text3);margin-top:4px">Rate shown to users</div>
-              </div>
-              <div class="field" style="margin:0">
-                <label>Selling App Rate (₹/USDT)</label>
-                <input type="number" id="ar-selling" placeholder="105" step="0.01">
-                <div style="font-size:10px;color:var(--text3);margin-top:4px">Your app's buying rate (for payout calc)</div>
-              </div>
+            <div style="font-size:13px;font-weight:700;margin-bottom:16px">❓ Frequently Asked Questions</div>
+            <div id="faq-list"></div>
+          </div>
+
+          <!-- Support Ticket -->
+          <div class="card" style="margin-bottom:16px">
+            <div style="font-size:13px;font-weight:700;margin-bottom:6px">🎫 Submit a Support Ticket</div>
+            <div style="font-size:12px;color:var(--text2);margin-bottom:16px">Can't find your answer? Our team will respond within 24 hours.</div>
+            <div class="field">
+              <label>Category</label>
+              <select id="ticket-cat">
+                <option value="deposit">Deposit Issue</option>
+                <option value="withdrawal">Withdrawal Issue</option>
+                <option value="kyc">KYC Problem</option>
+                <option value="account">Account Issue</option>
+                <option value="other">Other</option>
+              </select>
             </div>
-            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px;font-size:12px;color:var(--text2)">
-              💡 <strong>Example:</strong> User withdraws 25 USDT × ₹<span id="rate-preview-zap">95</span> = ₹<span id="rate-preview-gross">2375</span> → floor(2375÷<span id="rate-preview-sell">105</span>) = <span id="rate-preview-whole">22</span> USDT → User gets ₹<span id="rate-preview-net">2310</span> · Tax: ₹<span id="rate-preview-tax">65</span>
+            <div class="field">
+              <label>Subject</label>
+              <input type="text" id="ticket-subject" placeholder="Brief description of your issue">
             </div>
-            <button class="btn btn-p btn-sm" style="padding:12px 18px" onclick="updateRate()">Update Rates</button>
-          </div>
-
-          <!-- Admin tabs -->
-          <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
-            <button class="btn btn-sm btn-p" onclick="adminTab('withdrawals',this)">💸 Withdrawals</button>
-            <button class="btn btn-sm btn-o" onclick="adminTab('kyc',this)">🪪 KYC Requests</button>
-            <button class="btn btn-sm btn-o" onclick="adminTab('balances',this)">💰 Edit Balances</button>
-          </div>
-
-          <!-- Withdrawals tab -->
-          <div id="atab-withdrawals">
-            <div class="stitle" style="margin-bottom:12px">Pending Withdrawal Requests</div>
-            <div id="req-list"><div style="color:var(--text3);font-size:13px;padding:20px;text-align:center">Loading...</div></div>
-          </div>
-
-          <!-- KYC tab -->
-          <div id="atab-kyc" style="display:none">
-            <div class="stitle" style="margin-bottom:12px">KYC Submissions</div>
-            <div id="kyc-list"><div style="color:var(--text3);font-size:13px;padding:20px;text-align:center">Loading...</div></div>
-          </div>
-
-          <!-- Balance edit tab -->
-          <div id="atab-balances" style="display:none">
-            <div class="stitle" style="margin-bottom:12px">All User Balances</div>
-            <div id="bal-users-list"><div style="color:var(--text3);font-size:13px;padding:20px;text-align:center">Loading...</div></div>
-          </div>
-
-          <!-- Add/Remove balance modal -->
-          <div id="edit-bal-form" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:400;align-items:center;justify-content:center;padding:18px">
-            <div style="background:var(--surface);border:1px solid var(--border2);border-radius:22px;width:100%;max-width:420px;padding:26px">
-              <h2 style="font-size:18px;font-weight:800;margin-bottom:4px">Manage Balance</h2>
-              <p id="edit-bal-name" style="color:var(--text2);font-size:13px;margin-bottom:18px">—</p>
-              <input type="hidden" id="bal-uid">
-
-              <!-- Tabs -->
-              <div style="display:flex;gap:8px;margin-bottom:18px">
-                <button id="bal-add-tab" class="btn btn-sm btn-p" onclick="balTab('add')" style="flex:1">➕ Add Balance</button>
-                <button id="bal-rem-tab" class="btn btn-sm btn-o" onclick="balTab('remove')" style="flex:1">➖ Remove Balance</button>
-              </div>
-
-              <div class="field"><label id="bal-amt-label">Amount to Add (USDT)</label><input type="number" id="bal-amt" placeholder="0.00" step="0.01" min="0.01"></div>
-              <div class="field" style="margin-bottom:18px"><label>Note (shown to user)</label><input type="text" id="bal-note" placeholder="e.g. Bonus credit, Manual deposit..."></div>
-
-              <div style="display:flex;gap:8px">
-                <button class="btn btn-p" id="bal-submit-btn" onclick="submitBalance()">✅ Confirm</button>
-                <button class="btn btn-o" onclick="document.getElementById('edit-bal-form').style.display='none'" style="width:auto;padding:13px 20px">Cancel</button>
-              </div>
+            <div class="field" style="margin-bottom:16px">
+              <label>Message</label>
+              <textarea id="ticket-msg" placeholder="Describe your issue in detail..." rows="4" style="resize:vertical"></textarea>
             </div>
+            <button class="btn btn-p" id="ticket-btn" onclick="submitTicket()">Send Ticket →</button>
+          </div>
+
+          <!-- My Tickets -->
+          <div class="card">
+            <div style="font-size:13px;font-weight:700;margin-bottom:14px">📋 My Tickets</div>
+            <div id="my-tickets"><div style="text-align:center;padding:20px;color:var(--text3)">Loading...</div></div>
           </div>
         </div>
-        <div class="panel" id="panel-users">
-          <div class="card" style="overflow-x:auto">
-            <table class="utbl">
-              <thead><tr><th>User</th><th>Email</th><th>KYC</th><th>Balance</th><th>Deposited</th><th>Joined</th><th>Action</th></tr></thead>
-              <tbody id="utbody"></tbody>
-            </table>
-          </div>
+
         </div>
       </div>
     </div>
@@ -667,11 +627,10 @@ input::placeholder{color:var(--text3);}
     <div id="mob-more-menu" style="display:none;position:fixed;bottom:68px;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:8px 0;z-index:99">
       <div id="mob-more-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px 12px">
         <div class="mni" onclick="gpm('history',this);closeMobMore()" style="border-radius:10px"><div class="mni-icon">📋</div>History</div>
+        <div class="mni" onclick="gpm('help',this);closeMobMore()" style="border-radius:10px"><div class="mni-icon">💬</div>Help</div>
         <div class="mni" onclick="gpm('profile',this);closeMobMore()" style="border-radius:10px"><div class="mni-icon">👤</div>Profile</div>
       </div>
-      <div id="mob-adm-row" style="display:none;padding:0 12px 4px">
-        <div class="mni" id="mob-adm-nav" onclick="gpm('admin',this);closeMobMore()" style="border-radius:10px;width:100%"><div class="mni-icon">🛡</div>Admin<div class="mni-badge" id="mob-badge"></div></div>
-      </div>
+
     </div>
   </div>
 </div>
@@ -694,55 +653,6 @@ input::placeholder{color:var(--text3);}
   </div>
 </div>
 
-<!-- User Detail Modal -->
-<div class="overlay" id="user-detail-modal">
-  <div class="modal" style="max-width:600px;max-height:90vh;overflow-y:auto">
-    <div class="mbody">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-        <div style="display:flex;align-items:center;gap:14px">
-          <div style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800;color:#000" id="ud-av">?</div>
-          <div>
-            <div style="font-size:18px;font-weight:800" id="ud-name">—</div>
-            <div style="font-size:12px;color:var(--text2);font-family:'IBM Plex Mono',monospace" id="ud-email">—</div>
-          </div>
-        </div>
-        <button onclick="closeUserDetail()" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--text2);cursor:pointer;font-family:'Outfit',sans-serif">✕ Close</button>
-      </div>
-
-      <!-- Stats Row -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px" id="ud-stats"></div>
-
-      <!-- Info Tabs -->
-      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
-        <button class="btn btn-xs btn-p" onclick="udTab('info',this)">👤 Profile</button>
-        <button class="btn btn-xs btn-o" onclick="udTab('bank',this)">🏦 Bank</button>
-        <button class="btn btn-xs btn-o" onclick="udTab('txs',this)">📋 Transactions</button>
-        <button class="btn btn-xs btn-o" onclick="udTab('kyc',this)">🪪 KYC</button>
-      </div>
-
-      <!-- Profile Tab -->
-      <div id="ud-tab-info">
-        <div class="dtbl" id="ud-info-table"></div>
-      </div>
-
-      <!-- Bank Tab -->
-      <div id="ud-tab-bank" style="display:none">
-        <div class="dtbl" id="ud-bank-table"></div>
-      </div>
-
-      <!-- Transactions Tab -->
-      <div id="ud-tab-txs" style="display:none">
-        <div id="ud-txs-list"><div style="text-align:center;padding:20px;color:var(--text3)">Loading...</div></div>
-      </div>
-
-      <!-- KYC Tab -->
-      <div id="ud-tab-kyc" style="display:none">
-        <div class="dtbl" id="ud-kyc-table"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <div class="toast" id="toast"></div>
 
 <script>
@@ -760,7 +670,7 @@ firebase.initializeApp(FB_CONFIG);
 const fbAuth = firebase.auth();
 const fsDb   = firebase.firestore();
 
-let S = {user:null,profile:null,wallet:null,rate:null,bank:null,isAdmin:false,activeReq:null,walletUnsub:null};
+let S = {user:null,profile:null,wallet:null,rate:null,bank:null,activeReq:null,walletUnsub:null};
 
 // First check for redirect result, then normal auth state
 handleRedirectResult().then(() => {
@@ -962,20 +872,11 @@ async function bootApp(fbUser) {
     S.wallet=wallet; S.rate=rate; S.profile=profile; if(!S.rate.sellingRate) S.rate.sellingRate=105;
     S.bank=profile.bank||null;
     const tr = await fbUser.getIdTokenResult();
-    S.isAdmin = !!tr.claims.admin;
-    if (S.isAdmin) {
-      document.getElementById("adm-sec").style.display="block";
-      document.getElementById("adm-nav").style.display="flex";
-      document.getElementById("usr-nav").style.display="flex";
-      const mobAdm = document.getElementById("mob-adm-nav");
-      if (mobAdm) mobAdm.style.display="flex";
-      const mobAdmRow = document.getElementById("mob-adm-row");
-      if (mobAdmRow) mobAdmRow.style.display="block";
-    }
+
     populateAll();
     subscribeWallet(fbUser.uid);
     startRatePoll();
-    if (S.isAdmin) loadAdmin(token);
+
     document.getElementById('loader').style.display='none';
     document.getElementById('login-screen').classList.remove('active');
     document.getElementById('app-screen').classList.add('active');
@@ -1029,14 +930,7 @@ function subscribeWallet(uid) {
     loadRecentTx();
   });
 
-  if (S.isAdmin) {
-    fsDb.collection("withdrawals").where("status","==","pending").onSnapshot(snap=>{
-      const c=snap.size;
-      const nb=document.getElementById("nb"),mb=document.getElementById("mob-badge");
-      nb.textContent=c;nb.classList.toggle("show",c>0);
-      mb.textContent=c;mb.classList.toggle("show",c>0);
-    });
-  }
+
 }
 
 function populateAll() {
@@ -1398,62 +1292,6 @@ async function saveProfile() {
   } catch(e){toast("❌ "+e.message,"error");}
 }
 
-async function loadAdmin(token) {
-  try {
-    if(!token) token=await S.user.getIdToken();
-    const [stats,reqs,users]=await Promise.all([api("GET","/api/admin?action=stats",null,token),api("GET","/api/admin?action=withdrawals",null,token),api("GET","/api/admin?action=users",null,token)]);
-    document.getElementById("au").textContent=stats.totalUsers;
-    document.getElementById("ap").textContent=stats.pendingRequests;
-    document.getElementById("ad").textContent=fu(stats.totalUSDTDeposited);
-    document.getElementById("ai").textContent="₹"+fi(stats.totalINRPaid);
-    document.getElementById("ar").value=stats.rate;
-    const arSell = document.getElementById("ar-selling");
-    if(arSell) arSell.value=stats.sellingRate||105;
-    updateRatePreview();
-    renderReqs(reqs);renderUsers(users);
-  } catch(e){console.error("admin load:",e);}
-}
-
-function renderReqs(reqs) {
-  const el=document.getElementById("req-list");
-  if(!reqs.length){el.innerHTML='<div style="text-align:center;padding:28px;color:var(--text3)">✅ No pending requests</div>';return;}
-  el.innerHTML=reqs.map(r=>`<div class="req-item new"><div style="width:40px;height:40px;border-radius:11px;background:rgba(249,115,22,.1);display:flex;align-items:center;justify-content:center;font-size:18px">💸</div><div class="req-body"><div class="req-user">${r.name} · ${r.phone||r.email||""}</div><div class="req-detail">${r.amountUSDT} USDT → ₹${fi(r.netINR)} → ${r.bank?.bankName} ${r.bank?.masked}</div></div><button class="btn btn-xs btn-p" onclick="openReq('${r.id}')">Review</button></div>`).join("");
-}
-
-async function openReq(id) {
-  const token=await S.user.getIdToken();
-  const reqs=await api("GET","/api/admin?action=withdrawals",null,token);
-  const r=reqs.find(x=>x.id===id);if(!r) return;
-  S.activeReq=r;
-  document.getElementById("req-dtbl").innerHTML=`<div class="dtr"><span class="dk">User</span><span class="dv">${r.name}</span></div><div class="dtr"><span class="dk">USDT Amount</span><span class="dv g">${r.amountUSDT} USDT</span></div><div class="dtr"><span class="dk">INR (after fee)</span><span class="dv">₹${fi(r.netINR)}</span></div><div class="dtr"><span class="dk">Bank</span><span class="dv">${r.bank?.bankName}</span></div><div class="dtr"><span class="dk">Account No.</span><span class="dv">${r.bank?.masked}</span></div><div class="dtr"><span class="dk">IFSC</span><span class="dv">${r.bank?.ifsc}</span></div>`;
-  document.getElementById("anote").value="";
-  document.getElementById("req-modal").classList.add("show");
-}
-
-async function approveReq() {
-  const utr = v("autr");
-  if (!utr) return toast("⚠️ UTR number is required to approve", "error");
-  setBtnLoad("app-btn",true);
-  try {
-    const token=await S.user.getIdToken();
-    await api("POST","/api/admin?action=approve&id="+S.activeReq.id,{note:v("anote"),utr},token);
-    closeModal();toast("✅ Approved! UTR: "+utr,"success");loadAdmin(token);
-  } catch(e){toast("❌ "+e.message,"error");}
-  setBtnLoad("app-btn",false,"✓ Approve");
-}
-
-async function rejectReq() {
-  const reason = v("areason");
-  if (!reason) return toast("⚠️ Rejection reason is required", "error");
-  setBtnLoad("rej-btn",true);
-  try {
-    const token=await S.user.getIdToken();
-    await api("POST","/api/admin?action=reject&id="+S.activeReq.id,{note:v("anote"),reason},token);
-    closeModal();toast("❌ Rejected. USDT refunded.","error");loadAdmin(token);
-  } catch(e){toast("❌ "+e.message,"error");}
-  setBtnLoad("rej-btn",false,"✕ Reject");
-}
-
 async function updateRate() {
   const r=parseFloat(v("ar"));
   const sr=parseFloat(v("ar-selling"));
@@ -1544,423 +1382,6 @@ async function submitBalance() {
   } catch(e) { toast("❌ " + e.message, "error"); }
 }
 
-async function loadBalanceUsers() {
-  const el = document.getElementById("bal-users-list");
-  el.innerHTML = '<div style="color:var(--text3);font-size:13px;padding:20px;text-align:center">Loading...</div>';
-  try {
-    const token = await S.user.getIdToken();
-    const resp = await api("GET", "/api/admin?action=users-with-wallets", null, token);
-    const users = Array.isArray(resp) ? resp : (resp.items || []);
-    if (!users.length) { el.innerHTML='<div class="empty-state"><div class="es-icon">👥</div><div class="es-txt">No users yet</div></div>'; return; }
-    el.innerHTML = `
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden">
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;padding:10px 14px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3)">
-          <span>User</span><span>Email</span><span>Balance</span><span>Action</span>
-        </div>
-        ${users.map(u=>`
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.04);align-items:center;gap:8px">
-          <div style="font-size:13px;font-weight:600">${u.name||"—"}</div>
-          <div style="font-size:11px;color:var(--text3)">${u.email||"—"}</div>
-          <div style="font-family:'IBM Plex Mono',monospace;color:var(--accent);font-size:13px;font-weight:700">${fu(u.balance||0)} USDT</div>
-          <div style="display:flex;gap:5px">
-            <button class="btn btn-xs btn-p" onclick="openEditBal('${u.uid||u.id}','${(u.name||u.email||"User").replace(/'/g,"\'")}',${fu(u.balance||0)})">✏️</button>
-            <button class="btn btn-xs btn-d" onclick="deleteUser('${u.uid||u.id}','${(u.name||u.email||"User").replace(/'/g,"\'")}')">🗑️</button>
-          </div>
-        </div>`).join("")}
-      </div>`;
-  } catch(e) { el.innerHTML='<div style="color:var(--danger);padding:20px;text-align:center">Error: '+e.message+'</div>'; console.error(e); }
-}
-
-function openEditBal(uid, name, currentBal) {
-  document.getElementById("bal-uid").value = uid;
-  document.getElementById("bal-amt").value = currentBal;
-  document.getElementById("edit-bal-name").textContent = name + " — Current: " + currentBal + " USDT";
-  document.getElementById("edit-bal-form").style.display = "flex";
-}
-
-async function loadAdminKYC() {
-  try {
-    const token = await S.user.getIdToken();
-    const kycResp = await api("GET", "/api/admin?action=kyc-list", null, token);
-    const kycs = Array.isArray(kycResp) ? kycResp : (kycResp.items || []);
-    const el = document.getElementById("kyc-list");
-    if (!kycs.length) { el.innerHTML = '<div class="empty-state"><div class="es-icon">🪪</div><div class="es-txt">No KYC submissions yet</div></div>'; return; }
-    el.innerHTML = kycs.map(k => `
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:13px;padding:15px;margin-bottom:10px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-          <div>
-            <div style="font-size:13px;font-weight:700">${k.firstName||""} ${k.lastName||""}</div>
-            <div style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace">${k.email||""} · UID: ${k.uid}</div>
-          </div>
-          ${kycTag(k.status)}
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px">
-          <div style="background:var(--surface2);border-radius:8px;padding:8px">
-            <div style="font-size:9px;color:var(--text3);margin-bottom:2px">PAN</div>
-            <div style="font-size:12px;font-family:'IBM Plex Mono',monospace">${k.pan||"—"}</div>
-          </div>
-          <div style="background:var(--surface2);border-radius:8px;padding:8px">
-            <div style="font-size:9px;color:var(--text3);margin-bottom:2px">DOB</div>
-            <div style="font-size:12px;font-family:'IBM Plex Mono',monospace">${k.dob||"—"}</div>
-          </div>
-          <div style="background:var(--surface2);border-radius:8px;padding:8px">
-            <div style="font-size:9px;color:var(--text3);margin-bottom:2px">AADHAAR</div>
-            <div style="font-size:12px;font-family:'IBM Plex Mono',monospace">${k.aadhaar||"—"}</div>
-          </div>
-        </div>
-        ${k.status !== "verified" ? `
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-xs btn-p" onclick="adminKYCAction('${k.uid}','approve')">✓ Verify</button>
-          <button class="btn btn-xs btn-d" onclick="adminKYCAction('${k.uid}','reject')">✕ Reject</button>
-        </div>` : '<div style="color:var(--accent);font-size:12px">✓ Already verified</div>'}
-      </div>`).join("");
-  } catch(e) { toast("❌ " + e.message, "error"); }
-}
-
-async function adminKYCAction(uid, action) {
-  try {
-    const token = await S.user.getIdToken();
-    await api("POST", `/api/admin?action=kyc-${action}&uid=${uid}`, {}, token);
-    toast(action === "approve" ? "✅ KYC Verified!" : "❌ KYC Rejected", action === "approve" ? "success" : "error");
-    loadAdminKYC();
-  } catch(e) { toast("❌ " + e.message, "error"); }
-}
-
-function adminTab(tab, btn) {
-  ["withdrawals","kyc","balances"].forEach(t => {
-    document.getElementById("atab-"+t).style.display = t===tab ? "block" : "none";
-  });
-  document.querySelectorAll("#panel-admin .btn-sm").forEach(b => b.className = "btn btn-sm btn-o");
-  if (btn) btn.className = "btn btn-sm btn-p";
-  if (tab === "kyc") loadAdminKYC();
-  if (tab === "balances") loadBalanceUsers();
-}
-
-async function logout() {
-  if(S.walletUnsub) S.walletUnsub();
-  await fbAuth.signOut();
-  S={user:null,profile:null,wallet:null,rate:null,bank:null,isAdmin:false,activeReq:null,walletUnsub:null};
-  document.getElementById('app-screen').classList.remove('active');
-  document.getElementById('login-screen').classList.add('active');
-  document.getElementById('ls1').style.display='block';
-  document.getElementById('ls2').style.display='none';
-  toast("👋 Logged out","success");
-}
-
-async function api(method,path,body,token) {
-  const h={"Content-Type":"application/json"};
-  if(token) h["Authorization"]="Bearer "+token;
-  const opts={method,headers:h};
-  if(body&&method!=="GET") opts.body=JSON.stringify(body);
-  const r=await fetch(API+path,opts);
-  const j=await r.json();
-  if(!r.ok) throw new Error(j.error||"Request failed");
-  return j;
-}
-
-function fu(n){return parseFloat(n||0).toFixed(2);}
-function fi(n){return parseFloat(n||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});}
-function v(id){return document.getElementById(id)?.value?.trim()||"";}
-function show(id){document.getElementById(id).classList.add("active");}
-function hide(id){const el=document.getElementById(id);if(el)el.classList.remove("active");}
-function setLoader(msg){document.getElementById("loader-msg").textContent=msg;document.getElementById("loader").style.display="flex";}
-function generateDepositQR() {
-  const address = document.getElementById("dep-addr").textContent;
-  const pid = document.getElementById("dep-pid").textContent;
-  if (!address || address === "Loading..." || address === "—") return;
-  if (!pid || pid === "—") return;
-
-  const el = document.getElementById("dep-qr");
-  if (!el) return;
-  el.innerHTML = ""; // clear old QR
-
-  // Tron deep link format — supported by TronLink, imToken, Binance
-  // tron:ADDRESS?memo=PAYMENT_ID
-  const qrData = `tron:${address}?memo=${pid}`;
-
-  new QRCode(el, {
-    text: qrData,
-    width: 200,
-    height: 200,
-    colorDark: "#000000",
-    colorLight: "#ffffff",
-    correctLevel: QRCode.CorrectLevel.M,
-  });
-}
-
-function copyPid(){
-  const txt=document.getElementById("dep-pid").textContent;
-  if(!txt||txt==="—") return toast("⚠️ Payment ID not loaded yet","error");
-  navigator.clipboard?.writeText(txt).then(()=>{
-    toast("✅ Payment ID copied! Include it in memo when sending.","success");
-  }).catch(()=>{toast("❌ Copy failed","error");});
-}
-function copyAddr(){navigator.clipboard?.writeText(document.getElementById("dep-addr").textContent);toast("📋 Address copied!","success");}
-function closeModal(){document.getElementById("req-modal").classList.remove("show");}
-function startRatePoll(){setInterval(async()=>{try{const r=await api("GET","/api/rates");S.rate=r;document.getElementById("live-rate").textContent=r.inr.toFixed(2);document.getElementById("dep-rate").textContent=r.inr.toFixed(2);document.getElementById("wit-rate").textContent=r.inr.toFixed(2);document.getElementById("kr").textContent="₹"+r.inr.toFixed(2);}catch{}},30000);}
-function kycTag(s){const m={verified:'<span class="tag s">✓ Verified</span>',submitted:'<span class="tag i">⏳ Under Review</span>',pending:'<span class="tag p">⚠ Pending</span>',rejected:'<span class="tag f">✕ Rejected</span>'};return m[s]||m.pending;}
-function setBtnLoad(id,loading,label){const b=document.getElementById(id);if(!b)return;b.disabled=loading;b.innerHTML=loading?'<span class="spinner"></span>':(label||b.textContent);}
-// ── AUTO-REFRESH FUNCTIONS ──────────────────────────────────
-async function refreshDashboard() {
-  try {
-    const token = await S.user.getIdToken();
-    const [wallet, profile] = await Promise.all([
-      api("GET", "/api/wallet", null, token),
-      api("GET", "/api/auth", null, token),
-    ]);
-    S.wallet = wallet; S.profile = profile; S.bank = profile.bank || null;
-    updateWalletUI();
-    loadRecentTx();
-  } catch(e) { console.warn("Dashboard refresh:", e); }
-}
-
-async function refreshWithdraw() {
-  try {
-    const token = await S.user.getIdToken();
-    const [wallet, profile] = await Promise.all([
-      api("GET", "/api/wallet", null, token),
-      api("GET", "/api/auth", null, token),
-    ]);
-    S.wallet = wallet; S.profile = profile;
-    S.bank = profile.banks?.[0] || profile.bank || null;
-    if(profile.banks?.length) renderBankAccounts(profile.banks);
-    else if(profile.bank) showSavedBank(profile.bank);
-    updateWalletUI();
-    const p = document.getElementById("panel-withdraw");
-    if (p) populateWithdraw();
-  } catch(e) { console.warn("Withdraw refresh:", e); }
-}
-
-async function loadKYC() {
-  try {
-    const token = await S.user.getIdToken();
-    const profile = await api("GET", "/api/auth", null, token);
-    S.profile = { ...S.profile, ...profile };
-    loadKYCPanel(S.profile);
-    document.getElementById("kkyc").innerHTML = kycTag(S.profile.kycStatus);
-  } catch(e) { console.warn("KYC refresh:", e); }
-}
-
-async function refreshDeposit() {
-  try {
-    const token = await S.user.getIdToken();
-    const wallet = await api("GET", "/api/wallet", null, token);
-    S.wallet = wallet;
-    updateWalletUI();
-    // Update payment ID displays and regenerate QR
-    const pid = wallet.paymentId || S.profile?.paymentId || "—";
-    ["dep-pid","dep-pid2"].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=pid;});
-    generateDepositQR();
-  } catch(e) { console.warn("Deposit refresh:", e); }
-}
-
-function populateWithdraw() {
-  const p = S.profile || {};
-  // Update KYC warning if shown
-  const kycEl = document.getElementById("kkyc");
-  if (kycEl) kycEl.innerHTML = kycTag(p.kycStatus);
-}
-
-async function loadAllUsers() {
-  const el = document.getElementById("utbody");
-  if (!el) return;
-  el.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">Loading...</td></tr>';
-  try {
-    const token = await S.user.getIdToken();
-    const resp = await api("GET", "/api/admin?action=users-with-wallets", null, token);
-    const users = Array.isArray(resp) ? resp : (resp.items || []);
-    if (!users.length) {
-      el.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--text3)">No users yet</td></tr>';
-      return;
-    }
-    renderUsers(users);
-  } catch(e) {
-    el.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--danger)">Error: ' + e.message + '</td></tr>';
-  }
-}
-
-async function deleteUser(uid, name) {
-  if (!confirm(`⚠️ DELETE "${name}"?
-
-This permanently deletes:
-• Profile & wallet
-• All transactions
-• All withdrawals
-• KYC data
-• Firebase Auth account
-
-This CANNOT be undone!`)) return;
-  const confirmName = prompt(`Type "${name}" to confirm deletion:`);
-  if (confirmName !== name) return toast("❌ Name didn't match — cancelled", "error");
-  try {
-    const token = await S.user.getIdToken();
-    const r = await fetch(`/api/admin?action=delete-user&uid=${uid}`, { method:"DELETE", headers:{"Authorization":"Bearer "+token} });
-    const j = await r.json();
-    if (!r.ok) throw new Error(j.error);
-    toast("🗑️ User deleted successfully", "success");
-    loadAdmin(); loadBalanceUsers(); loadAllUsers();
-  } catch(e) { toast("❌ " + e.message, "error"); }
-}
-
-// ── PROFILE FEATURES ─────────────────────────────────────────
-
-const AVATARS = ["🦊","🐯","🦁","🐻","🐼","🦄","🐲","🦋","🐬","🦅","🎭","🚀","⚡","🔥","💎","🎯"];
-
-function initAvatarPicker() {
-  const container = document.getElementById("avatar-options");
-  if (!container) return;
-  container.innerHTML = AVATARS.map(emoji => `
-    <div onclick="selectAvatar('${emoji}')" style="width:44px;height:44px;border-radius:50%;background:var(--surface);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">${emoji}</div>
-  `).join("");
-}
-
-async function selectAvatar(emoji) {
-  document.getElementById("pav").textContent = emoji;
-  document.getElementById("top-av").textContent = emoji;
-  document.getElementById("avatar-picker").style.display = "none";
-  // Save to profile
-  try {
-    const token = await S.user.getIdToken();
-    await api("PATCH", "/api/auth", { avatar: emoji }, token);
-    S.profile.avatar = emoji;
-    toast("✅ Avatar updated!", "success");
-  } catch(e) { toast("❌ " + e.message, "error"); }
-}
-
-function loadNotifPrefs() {
-  // Merge Firestore prefs with localStorage (Firestore takes priority)
-  const localPrefs = JSON.parse(localStorage.getItem("zap-notif-prefs") || "{}");
-  const serverPrefs = S.profile?.notifPrefs || {};
-  const prefs = { ...localPrefs, ...serverPrefs };
-  ["notif-deposit","notif-withdraw","notif-kyc","notif-rate"].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    const checked = id in prefs ? prefs[id] : (id !== "notif-rate");
-    el.checked = checked;
-    updateToggleUI(id, checked);
-  });
-}
-
-function toggleNotif(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.checked = !el.checked;
-  updateToggleUI(id, el.checked);
-  saveNotifPrefs();
-}
-
-async function saveNotifPrefs() {
-  const prefs = {};
-  ["notif-deposit","notif-withdraw","notif-kyc","notif-rate"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) prefs[id] = el.checked;
-  });
-  localStorage.setItem("zap-notif-prefs", JSON.stringify(prefs));
-  // Save to Firestore so backend can check before sending emails
-  try {
-    const token = await S.user.getIdToken();
-    await api("PATCH", "/api/auth", { notifPrefs: prefs }, token);
-    toast("✅ Preferences saved!", "success");
-  } catch(e) {
-    toast("✅ Preferences saved locally!", "success");
-  }
-}
-
-function updateToggleUI(id, checked) {
-  const track = document.getElementById(id+"-track");
-  const thumb = document.getElementById(id+"-thumb");
-  if (track) track.style.background = checked ? "var(--accent)" : "var(--border2)";
-  if (thumb) thumb.style.transform = checked ? "translateX(18px)" : "translateX(0)";
-}
-
-async function loadActivityLog() {
-  const el = document.getElementById("activity-log");
-  if (!el) return;
-  try {
-    const token = await S.user.getIdToken();
-    const [deps, wits] = await Promise.all([
-      api("GET", "/api/deposit?history=1", null, token),
-      api("GET", "/api/withdraw", null, token),
-    ]);
-
-    const activities = [];
-
-    // Add deposit activities
-    deps.slice(0,5).forEach(d => {
-      let ts = d.createdAt?.seconds||d.createdAt?._seconds;
-      activities.push({
-        icon: "⬇",
-        color: "var(--accent)",
-        label: d.adminAction ? "Admin credited balance" : "USDT Deposit",
-        detail: `+${parseFloat(d.amountUSDT||0).toFixed(2)} USDT`,
-        ts: ts ? new Date(ts*1000) : null,
-      });
-    });
-
-    // Add withdrawal activities
-    wits.slice(0,5).forEach(w => {
-      let ts = w.createdAt?.seconds||w.createdAt?._seconds;
-      const statusIcon = w.status==="approved"?"✅":w.status==="rejected"?"❌":"⏳";
-      activities.push({
-        icon: "⬆",
-        color: "var(--danger)",
-        label: `INR Withdrawal ${statusIcon}`,
-        detail: `−${parseFloat(w.amountUSDT||0).toFixed(2)} USDT → ₹${parseFloat(w.netINR||0).toLocaleString("en-IN")}`,
-        ts: ts ? new Date(ts*1000) : null,
-      });
-    });
-
-    // Add account creation
-    const createdTs = S.profile?.createdAt?.seconds || S.profile?.createdAt?._seconds;
-    if (createdTs) {
-      activities.push({
-        icon: "🎉",
-        color: "var(--gold)",
-        label: "Account Created",
-        detail: "Welcome to ZAP-CASH!",
-        ts: new Date(createdTs*1000),
-      });
-    }
-
-    // Sort by time desc
-    activities.sort((a,b) => (b.ts||0) - (a.ts||0));
-
-    if (!activities.length) {
-      el.innerHTML = '<div class="empty-state"><div class="es-icon">📋</div><div class="es-txt">No activity yet</div></div>';
-      return;
-    }
-
-    el.innerHTML = activities.map(a => `
-      <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05)">
-        <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${a.icon}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:13px;font-weight:600">${a.label}</div>
-          <div style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-top:1px">${a.detail}</div>
-        </div>
-        <div style="font-size:10px;color:var(--text3);text-align:right;flex-shrink:0">${a.ts?a.ts.toLocaleString("en-IN",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:true}):"—"}</div>
-      </div>`).join("");
-  } catch(e) { el.innerHTML = '<div style="color:var(--danger);padding:20px;text-align:center">Failed to load</div>'; }
-}
-
-function populateProfile() {
-  const p = S.profile || {};
-  const name = p.firstName || p.name || S.user?.displayName || "User";
-  // Set avatar — emoji or initial
-  const av = document.getElementById("pav");
-  if (av) av.textContent = p.avatar || (name[0]||"U").toUpperCase();
-  const topAv = document.getElementById("top-av");
-  if (topAv) topAv.textContent = p.avatar || (name[0]||"U").toUpperCase();
-  // Member since
-  const ms = document.getElementById("p-member-since");
-  if (ms) {
-    const ts = p.createdAt?.seconds || p.createdAt?._seconds;
-    ms.textContent = ts ? "Member since " + new Date(ts*1000).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}) : "";
-  }
-  initAvatarPicker();
-  loadNotifPrefs();
-  loadActivityLog();
-}
-
 // ── DOB Auto-formatter ───────────────────────────────────────
 function formatDob(el) {
   let val = el.value.replace(/\D/g, "").slice(0, 8); // digits only, max 8
@@ -1982,165 +1403,307 @@ function handleDobKey(e, el) {
   }
 }
 
-// ── USER DETAIL MODAL ─────────────────────────────────────────
-let _udUid = null;
-
-async function viewUserDetail(uid) {
-  _udUid = uid;
-  document.getElementById("user-detail-modal").classList.add("show");
-  document.getElementById("ud-av").textContent = "...";
-  document.getElementById("ud-name").textContent = "Loading...";
-  document.getElementById("ud-email").textContent = "";
-  document.getElementById("ud-stats").innerHTML = "";
-  document.getElementById("ud-info-table").innerHTML = "";
-  document.getElementById("ud-txs-list").innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3)">Loading...</div>';
-
-  try {
-    const token = await S.user.getIdToken();
-    const [user, walletResp, txResp, witResp] = await Promise.all([
-      api("GET", `/api/admin?action=user&uid=${uid}`, null, token),
-      api("GET", `/api/admin?action=users-with-wallets`, null, token),
-      fetch(`/api/admin?action=user-txs&uid=${uid}`, {headers:{"Authorization":"Bearer "+token}}).then(r=>r.json()).catch(()=>({items:[]})),
-      fetch(`/api/admin?action=user-wits&uid=${uid}`, {headers:{"Authorization":"Bearer "+token}}).then(r=>r.json()).catch(()=>[]),
-    ]);
-
-    // Get wallet from users-with-wallets
-    const allUsers = Array.isArray(walletResp) ? walletResp : (walletResp.items||[]);
-    const wallet = allUsers.find(u=>u.uid===uid) || {};
-
-    const av = user.avatar || (user.name||user.email||"U")[0].toUpperCase();
-    document.getElementById("ud-av").textContent = av;
-    document.getElementById("ud-name").textContent = user.name || user.email || "Unknown";
-    document.getElementById("ud-email").textContent = user.email || user.phone || "—";
-
-    // Stats
-    document.getElementById("ud-stats").innerHTML = [
-      {l:"Balance", v:fu(wallet.balance||0)+" USDT", c:"g"},
-      {l:"Deposited", v:fu(wallet.totalDeposited||0)+" USDT", c:"b"},
-      {l:"Withdrawn", v:fu(wallet.totalWithdrawn||0)+" USDT", c:""},
-    ].map(s=>`
-      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center">
-        <div style="font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">${s.l}</div>
-        <div style="font-size:16px;font-weight:800;font-family:'IBM Plex Mono',monospace;color:${s.c==="g"?"var(--accent)":s.c==="b"?"var(--accent2)":"var(--text)"}">${s.v}</div>
-      </div>`).join("");
-
-    // Profile tab
-    const joined = user.createdAt?._seconds ? new Date(user.createdAt._seconds*1000).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}) : "—";
-    document.getElementById("ud-info-table").innerHTML = [
-      ["Full Name",    user.name||"—"],
-      ["Email",        user.email||"—"],
-      ["Phone",        user.phone||"—"],
-      ["Payment ID",   user.paymentId||wallet.paymentId||"—"],
-      ["KYC Status",   kycTag(user.kycStatus)],
-      ["Joined",       joined],
-    ].map(([k,v])=>`<div class="dtr"><span class="dk">${k}</span><span class="dv">${v}</span></div>`).join("");
-
-    // Bank tab
-    const bank = user.bank;
-    document.getElementById("ud-bank-table").innerHTML = bank ? [
-      ["Account Holder", bank.holderName||"—"],
-      ["Bank Name",      bank.bankName||"—"],
-      ["Account No.",    bank.masked||"—"],
-      ["IFSC Code",      bank.ifsc||"—"],
-      ["Account Type",   bank.accountType||"savings"],
-    ].map(([k,v])=>`<div class="dtr"><span class="dk">${k}</span><span class="dv">${v}</span></div>`).join("")
-    : '<div class="empty-state"><div class="es-icon">🏦</div><div class="es-txt">No bank details saved</div></div>';
-
-    // KYC tab
-    const kyc = user.kyc;
-    document.getElementById("ud-kyc-table").innerHTML = kyc ? [
-      ["Status",     kycTag(kyc.status)],
-      ["First Name", kyc.firstName||"—"],
-      ["Last Name",  kyc.lastName||"—"],
-      ["PAN",        kyc.pan||"—"],
-      ["Aadhaar",    kyc.aadhaar||"—"],
-      ["DOB",        kyc.dob||"—"],
-    ].map(([k,v])=>`<div class="dtr"><span class="dk">${k}</span><span class="dv">${v}</span></div>`).join("")
-    : '<div class="empty-state"><div class="es-icon">🪪</div><div class="es-txt">No KYC submitted</div></div>';
-
-    // Transactions tab - combine deposits and withdrawals
-    const txs = Array.isArray(txResp) ? txResp : (txResp.items||[]);
-    const wits = Array.isArray(witResp) ? witResp : [];
-    const allTxs = [
-      ...txs.map(t=>({...t,_k:"dep"})),
-      ...wits.map(t=>({...t,_k:"wit"}))
-    ].sort((a,b)=>(b.createdAt?._seconds||b.createdAt?.seconds||0)-(a.createdAt?._seconds||a.createdAt?.seconds||0));
-
-    if (!allTxs.length) {
-      document.getElementById("ud-txs-list").innerHTML = '<div class="empty-state"><div class="es-icon">📭</div><div class="es-txt">No transactions yet</div></div>';
-    } else {
-      document.getElementById("ud-txs-list").innerHTML = allTxs.map(tx=>{
-        const dep = tx._k==="dep";
-        const ts = tx.createdAt?._seconds||tx.createdAt?.seconds;
-        const dt = ts ? new Date(ts*1000).toLocaleString("en-IN",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:true}) : "—";
-        const amt = fu(tx.amountUSDT||tx.amount||0);
-        let label = dep ? (tx.adminAction?"Admin Credit":"USDT Deposit") : "INR Withdrawal";
-        let statusBadge = tx.status==="confirmed"||tx.status==="paid"||tx.status==="approved"
-          ? '<span class="tag s">✓ Done</span>'
-          : tx.status==="pending" ? '<span class="tag p">⏳ Pending</span>'
-          : '<span class="tag f">✕ '+tx.status+'</span>';
-        return `<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.05)">
-          <div style="width:34px;height:34px;border-radius:9px;background:${dep?"rgba(0,240,160,.1)":"rgba(239,68,68,.1)"};display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">${dep?"⬇":"⬆"}</div>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:13px;font-weight:600">${label}</div>
-            <div style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace">${dt}</div>
-            ${tx.utr ? `<div style="font-size:10px;color:var(--gold)">UTR: ${tx.utr}</div>` : ""}
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:13px;font-weight:700;font-family:'IBM Plex Mono',monospace;color:${dep?"var(--accent)":"var(--danger)"}">${dep?"+":"-"}${amt} USDT</div>
-            <div style="margin-top:2px">${statusBadge}</div>
-          </div>
-        </div>`;
-      }).join("");
-    }
-
-  } catch(e) {
-    toast("❌ Failed to load user: "+e.message, "error");
-    closeUserDetail();
-  }
-}
-
-function udTab(tab, btn) {
-  ["info","bank","txs","kyc"].forEach(t => {
-    document.getElementById("ud-tab-"+t).style.display = t===tab ? "block" : "none";
-  });
-  document.querySelectorAll("#user-detail-modal .btn-xs").forEach(b => {
-    b.className = "btn btn-xs btn-o";
-  });
-  if (btn) btn.className = "btn btn-xs btn-p";
-}
-
-function closeUserDetail() {
-  document.getElementById("user-detail-modal").classList.remove("show");
-  _udUid = null;
-}
-
 function gp(name,el){
   document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
   document.querySelectorAll(".ni").forEach(n=>n.classList.remove("active"));
   document.getElementById("panel-"+name)?.classList.add("active");
   if(el)el.classList.add("active");
-  const t={dashboard:"Dashboard",deposit:"Deposit USDT",withdraw:"Withdraw INR",history:"Transaction History",kyc:"KYC Status",profile:"Profile",admin:"Admin Panel",users:"All Users"};
+  const t={dashboard:"Dashboard",deposit:"Deposit USDT",withdraw:"Withdraw INR",history:"Transaction History",kyc:"KYC Status",profile:"Profile",help:"Help & Support"};
   document.getElementById("ptitle").textContent=t[name]||name;
   // Auto-refresh data when switching panels
   if(name==="dashboard")   refreshDashboard();
   if(name==="kyc")         loadKYC();
   if(name==="withdraw")    refreshWithdraw();
   if(name==="history")     loadHistory("all",null);
-  if(name==="admin"&&S.isAdmin) loadAdmin();
-  if(name==="users"&&S.isAdmin) loadAllUsers?.();
+
   if(name==="deposit")     refreshDeposit();
   if(name==="profile")     populateProfile();
+  if(name==="help")        loadHelpPanel();
 }
 function gpm(name,el){gp(name,null);document.querySelectorAll(".mni").forEach(m=>m.classList.remove("active"));el.classList.add("active");}
 function toggleMobMore(el){const m=document.getElementById("mob-more-menu");m.style.display=m.style.display==="none"?"block":"none";document.querySelectorAll(".mni").forEach(m=>m.classList.remove("active"));el.classList.add("active");}
 function closeMobMore(){document.getElementById("mob-more-menu").style.display="none";}
 // Close more menu when clicking outside
 document.addEventListener("click",e=>{const menu=document.getElementById("mob-more-menu");if(menu&&menu.style.display!=="none"&&!menu.contains(e.target)&&!e.target.closest(".mni")){closeMobMore();}});
-document.getElementById("req-modal").addEventListener("click",e=>{if(e.target===document.getElementById("req-modal"))closeModal();});
-document.getElementById("user-detail-modal").addEventListener("click",e=>{if(e.target===document.getElementById("user-detail-modal"))closeUserDetail();});
-let toastT;
-function toast(msg,type="success"){const t=document.getElementById("toast");t.textContent=msg;t.className="toast "+type+" show";clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),3500);}
+var toastT;
+function toast(msg,type="success"){const t=document.getElementById("toast");if(!t)return;t.textContent=msg;t.className="toast "+type+" show";clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),3500);}
+function v(id){const el=document.getElementById(id);return el?el.value.trim():"";}
+function setBtnLoad(id,loading,txt){const el=document.getElementById(id);if(!el)return;el.disabled=loading;if(txt)el.textContent=txt;else if(loading)el.dataset.orig=el.textContent,el.innerHTML='<span style="display:inline-block;width:14px;height:14px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle;margin-right:5px"></span>Sending...';}
+function fu(n){return parseFloat(n||0).toFixed(2);}
+function fi(n){return parseFloat(n||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});}
+function kycTag(s){const m={verified:'<span class="tag s">✓ Verified</span>',submitted:'<span class="tag p">⏳ Review</span>',pending:'<span class="tag p">Pending</span>',rejected:'<span class="tag f">✕ Rejected</span>'};return m[s]||m.pending;}
+function statusTag(s){const m={approved:'<span class="tag s">✅ Approved</span>',confirmed:'<span class="tag s">✅ Confirmed</span>',pending:'<span class="tag p">⏳ Pending</span>',rejected:'<span class="tag f">❌ Rejected</span>',cancelled:'<span class="tag f">✕ Cancelled</span>'};return m[s]||('<span class="tag i">'+s+'</span>');}
+function closeModal(){const m=document.getElementById("req-modal");if(m)m.classList.remove("show");}
+async function api(method,path,body,token){
+  const opts={method,headers:{"Content-Type":"application/json"}};
+  if(token) opts.headers["Authorization"]="Bearer "+token;
+  if(body&&method!=="GET") opts.body=JSON.stringify(body);
+  const r=await fetch(path,opts);
+  const j=await r.json();
+  if(!r.ok) throw new Error(j.error||"Request failed");
+  return j;
+}
+// ── MISSING FUNCTIONS RESTORED ───────────────────────────────
+
+function generateDepositQR() {
+  const address = document.getElementById("dep-addr")?.textContent;
+  const pid = document.getElementById("dep-pid")?.textContent;
+  if (!address || address === "Loading..." || address === "—") return;
+  if (!pid || pid === "—") return;
+  const el = document.getElementById("dep-qr");
+  if (!el) return;
+  el.innerHTML = "";
+  const qrData = "tron:" + address + "?memo=" + pid;
+  new QRCode(el, { text: qrData, width: 200, height: 200, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.M });
+}
+
+function copyAddr() {
+  const txt = document.getElementById("dep-addr")?.textContent;
+  if (!txt || txt === "—") return;
+  navigator.clipboard?.writeText(txt).then(() => toast("📋 Address copied!", "success")).catch(() => toast("❌ Copy failed", "error"));
+}
+
+function copyPid() {
+  const txt = document.getElementById("dep-pid")?.textContent;
+  if (!txt || txt === "—") return toast("⚠️ Payment ID not loaded", "error");
+  navigator.clipboard?.writeText(txt).then(() => toast("✅ Payment ID copied! Include in memo.", "success")).catch(() => toast("❌ Copy failed", "error"));
+}
+
+async function logout() {
+  try { await fsAuth.signOut(); } catch(e) { console.error(e); }
+}
+
+async function approveReq() {
+  const utr = v("autr");
+  if (!utr) return toast("⚠️ UTR number is required", "error");
+  setBtnLoad("app-btn", true);
+  try {
+    const token = await S.user.getIdToken();
+    await api("POST", "/api/admin?action=approve&id=" + S.activeReq?.id, { note: v("anote"), utr }, token);
+    closeModal();
+    toast("✅ Approved! UTR: " + utr, "success");
+  } catch(e) { toast("❌ " + e.message, "error"); }
+  setBtnLoad("app-btn", false, "✓ Approve");
+}
+
+async function rejectReq() {
+  const reason = v("areason");
+  if (!reason) return toast("⚠️ Rejection reason is required", "error");
+  setBtnLoad("rej-btn", true);
+  try {
+    const token = await S.user.getIdToken();
+    await api("POST", "/api/admin?action=reject&id=" + S.activeReq?.id, { note: v("anote"), reason }, token);
+    closeModal();
+    toast("❌ Rejected. USDT refunded.", "error");
+  } catch(e) { toast("❌ " + e.message, "error"); }
+  setBtnLoad("rej-btn", false, "✕ Reject");
+}
+
+function viewUserDetail(uid) { console.log("Admin feature moved to admin site"); }
+function deleteUser(uid, name) { console.log("Admin feature moved to admin site"); }
+function loadAllUsers() { console.log("Admin feature moved to admin site"); }
+function loadBalanceUsers() { console.log("Admin feature moved to admin site"); }
+function openEditBal(uid, name, bal) { console.log("Admin feature moved to admin site"); }
+function loadKYC() { console.log("Admin feature moved to admin site"); }
+function startRatePoll() {}
+
+async function refreshDashboard() {
+  try {
+    const token = await S.user.getIdToken();
+    const [wallet, rate] = await Promise.all([
+      api("GET", "/api/wallet", null, token),
+      api("GET", "/api/rates", null, token),
+    ]);
+    S.wallet = wallet; S.rate = rate;
+    updateWalletUI();
+  } catch(e) { console.warn("Dashboard refresh:", e); }
+}
+
+async function refreshDeposit() {
+  try {
+    const token = await S.user.getIdToken();
+    const wallet = await api("GET", "/api/wallet", null, token);
+    S.wallet = wallet;
+    updateWalletUI();
+    const pid = wallet.paymentId || S.profile?.paymentId || "—";
+    ["dep-pid","dep-pid2"].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = pid; });
+    document.getElementById("dep-addr").textContent = wallet.depositAddress || "—";
+    generateDepositQR();
+  } catch(e) { console.warn("Deposit refresh:", e); }
+}
+
+async function refreshWithdraw() {
+  try {
+    const token = await S.user.getIdToken();
+    const [wallet, profile, rate] = await Promise.all([
+      api("GET", "/api/wallet", null, token),
+      api("GET", "/api/auth", null, token),
+      api("GET", "/api/rates", null, token),
+    ]);
+    S.wallet = wallet; S.profile = { ...S.profile, ...profile }; S.rate = rate;
+    S.bank = profile.banks?.find(b => b.isDefault) || profile.banks?.[0] || profile.bank || null;
+    if (profile.banks?.length) renderBankAccounts(profile.banks);
+    else if (profile.bank) showSavedBank(profile.bank);
+    updateWalletUI();
+  } catch(e) { console.warn("Withdraw refresh:", e); }
+}
+
+async function loadHelpPanel() {
+  if (typeof renderFAQ === "function") renderFAQ(FAQ_DATA);
+  if (typeof loadMyTickets === "function") loadMyTickets();
+}
+
+async function submitTicket() {
+  const cat     = document.getElementById("ticket-cat")?.value;
+  const subject = v("ticket-subject");
+  const msg     = v("ticket-msg");
+  if (!subject) return toast("⚠️ Enter a subject", "error");
+  if (!msg) return toast("⚠️ Describe your issue", "error");
+  setBtnLoad("ticket-btn", true, "Sending...");
+  try {
+    const token = await S.user.getIdToken();
+    await fetch("/api/support", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+      body: JSON.stringify({ category: cat, subject, message: msg }),
+    }).then(r => r.json());
+    document.getElementById("ticket-subject").value = "";
+    document.getElementById("ticket-msg").value = "";
+    toast("✅ Ticket submitted! We'll respond within 24 hours.", "success");
+    if (typeof loadMyTickets === "function") loadMyTickets();
+  } catch(e) { toast("❌ " + e.message, "error"); }
+  setBtnLoad("ticket-btn", false, "Send Ticket →");
+}
+
+async function loadMyTickets() {
+  const el = document.getElementById("my-tickets");
+  if (!el) return;
+  try {
+    const token = await S.user.getIdToken();
+    const resp = await fetch("/api/support", { headers: {"Authorization": "Bearer " + token} }).then(r => r.json());
+    const tickets = Array.isArray(resp) ? resp : (resp.items || []);
+    if (!tickets.length) {
+      el.innerHTML = '<div class="empty-state"><div class="es-icon">🎫</div><div class="es-txt">No tickets yet.<br>Submit one above if you need help.</div></div>';
+      return;
+    }
+    el.innerHTML = tickets.map(t => {
+      const ts = t.createdAt?._seconds || t.createdAt?.seconds;
+      const dt = ts ? new Date(ts*1000).toLocaleString("en-IN", {day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit",hour12:true}) : "—";
+      const statusColor = t.status==="open" ? "var(--warn)" : t.status==="replied" ? "var(--accent)" : "var(--text3)";
+      return `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:13px;padding:15px;margin-bottom:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <div style="font-size:13px;font-weight:600">${t.subject}</div>
+          <span style="font-size:11px;font-weight:700;color:${statusColor};background:rgba(255,255,255,.05);padding:2px 9px;border-radius:6px">${(t.status||"open").toUpperCase()}</span>
+        </div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:8px">${dt} · ${t.category||"General"}</div>
+        <div style="font-size:13px;color:var(--text2);line-height:1.5">${t.message}</div>
+        ${t.reply ? `<div style="margin-top:10px;padding:10px;background:rgba(0,240,160,.05);border:1px solid rgba(0,240,160,.2);border-radius:9px">
+          <div style="font-size:10px;font-weight:700;color:var(--accent);margin-bottom:4px">ADMIN REPLY</div>
+          <div style="font-size:13px;color:var(--text2);line-height:1.5">${t.reply}</div>
+        </div>` : ""}
+      </div>`;
+    }).join("");
+  } catch(e) {
+    el.innerHTML = '<div style="color:var(--danger);padding:20px;text-align:center">Failed to load tickets</div>';
+  }
+}
+
+async function loadActivityLog() {
+  const el = document.getElementById("activity-log");
+  if (!el) return;
+  try {
+    const token = await S.user.getIdToken();
+    const [deps, wits] = await Promise.all([
+      api("GET", "/api/deposit?history=1", null, token).catch(()=>[]),
+      api("GET", "/api/withdraw", null, token).catch(()=>[]),
+    ]);
+
+    const activities = [];
+
+    (Array.isArray(deps)?deps:[]).slice(0,5).forEach(d => {
+      const ts = d.createdAt?._seconds || d.createdAt?.seconds;
+      activities.push({
+        icon: "⬇", color: "var(--accent)",
+        label: d.adminAction ? "Admin credited balance" : "USDT Deposit",
+        detail: "+" + parseFloat(d.amountUSDT||0).toFixed(2) + " USDT",
+        ts: ts ? new Date(ts*1000) : null,
+      });
+    });
+
+    (Array.isArray(wits)?wits:[]).slice(0,5).forEach(w => {
+      const ts = w.createdAt?._seconds || w.createdAt?.seconds;
+      const icon = w.status==="approved"?"✅":w.status==="rejected"?"❌":"⏳";
+      activities.push({
+        icon: "⬆", color: "var(--danger)",
+        label: "INR Withdrawal " + icon,
+        detail: "−" + parseFloat(w.amountUSDT||0).toFixed(2) + " USDT → ₹" + parseFloat(w.netINR||0).toLocaleString("en-IN"),
+        ts: ts ? new Date(ts*1000) : null,
+      });
+    });
+
+    const createdTs = S.profile?.createdAt?.seconds || S.profile?.createdAt?._seconds;
+    if (createdTs) activities.push({ icon:"🎉", color:"var(--gold)", label:"Account Created", detail:"Welcome to ZAP-CASH!", ts: new Date(createdTs*1000) });
+
+    activities.sort((a,b) => (b.ts||0) - (a.ts||0));
+
+    if (!activities.length) {
+      el.innerHTML = '<div class="empty-state"><div class="es-icon">📋</div><div class="es-txt">No activity yet</div></div>';
+      return;
+    }
+
+    el.innerHTML = activities.map(a => `
+      <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+        <div style="width:36px;height:36px;border-radius:10px;background:rgba(255,255,255,.05);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">${a.icon}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600">${a.label}</div>
+          <div style="font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-top:1px">${a.detail}</div>
+        </div>
+        <div style="font-size:10px;color:var(--text3);text-align:right;flex-shrink:0">${a.ts?a.ts.toLocaleString("en-IN",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit",hour12:true}):"—"}</div>
+      </div>`).join("");
+  } catch(e) {
+    el.innerHTML = '<div style="color:var(--danger);padding:20px;text-align:center">Failed to load</div>';
+  }
+}
+
+function toggleNotif(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.checked = !el.checked;
+  updateToggleUI(id, el.checked);
+  if (typeof saveNotifPrefs === "function") saveNotifPrefs();
+}
+
+function populateProfile() {
+  const p = S.profile || {};
+  const name = p.name || S.user?.displayName || "User";
+  const av = p.avatar || (name[0] || "U").toUpperCase();
+  const avEl = document.getElementById("pav");
+  if (avEl) avEl.textContent = av;
+  const topAv = document.getElementById("top-av");
+  if (topAv) topAv.textContent = av;
+  const ms = document.getElementById("p-member-since");
+  if (ms) {
+    const ts = p.createdAt?.seconds || p.createdAt?._seconds;
+    ms.textContent = ts ? "Member since " + new Date(ts*1000).toLocaleDateString("en-IN", {day:"2-digit",month:"short",year:"numeric"}) : "";
+  }
+  const parts = (p.name || "").split(" ");
+  const pfn = document.getElementById("pfn"); if(pfn) pfn.value = parts[0] || "";
+  const pln = document.getElementById("pln"); if(pln) pln.value = parts.slice(1).join(" ") || "";
+  const pemail = document.getElementById("pemail"); if(pemail) pemail.value = p.email || S.user?.email || "";
+  const pphone = document.getElementById("pphone"); if(pphone) pphone.textContent = p.phone || p.email || S.user?.email || "—";
+  const pname = document.getElementById("pname"); if(pname) pname.textContent = p.name || name;
+  if (p.phone) {
+    const codes = ["+971","+65","+44","+1","+91"];
+    const code = codes.find(c => p.phone.startsWith(c)) || "+91";
+    const num = p.phone.replace(code, "");
+    const codeEl = document.getElementById("p-phone-code"); if(codeEl) codeEl.value = code;
+    const numEl = document.getElementById("p-phone"); if(numEl) numEl.value = num;
+  }
+  if (typeof initAvatarPicker === "function") initAvatarPicker();
+  if (typeof loadNotifPrefs === "function") loadNotifPrefs();
+  if (typeof loadActivityLog === "function") loadActivityLog();
+}
+
 </script>
 </body>
 </html>

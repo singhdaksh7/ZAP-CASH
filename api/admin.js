@@ -217,5 +217,15 @@ module.exports = handle(async (req, res) => {
     return res.json(snap.docs.map(d=>({id:d.id,...d.data()})));
   }
 
+  // ── WITHDRAWALS ALL (for admin site) ──
+  if (action === "withdrawals-all" && req.method === "GET") {
+    const snap = await db.collection("withdrawals")
+      .orderBy("createdAt", "desc")
+      .limit(200)
+      .get();
+    const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    return res.json({ items });
+  }
+
   res.status(400).json({ error:"Unknown action" });
 }, { maxReqs:120, windowMs:60_000 });
