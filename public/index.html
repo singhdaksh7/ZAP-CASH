@@ -605,9 +605,30 @@ input::placeholder{color:var(--text3);}
           </div>
 
           <!-- My Tickets -->
-          <div class="card">
+          <div class="card" id="tickets-list-card">
             <div style="font-size:13px;font-weight:700;margin-bottom:14px">📋 My Tickets</div>
             <div id="my-tickets"><div style="text-align:center;padding:20px;color:var(--text3)">Loading...</div></div>
+          </div>
+
+          <!-- Chat Window -->
+          <div id="chat-window" style="display:none">
+            <div class="card" style="padding:0;overflow:hidden">
+              <!-- Chat Header -->
+              <div style="display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border);background:var(--surface2)">
+                <button onclick="closeChat()" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--text2);cursor:pointer;font-size:12px">← Back</button>
+                <div style="flex:1">
+                  <div style="font-size:13px;font-weight:700" id="chat-subject">—</div>
+                  <div style="font-size:11px;color:var(--text3)" id="chat-status">—</div>
+                </div>
+              </div>
+              <!-- Messages -->
+              <div id="chat-messages" style="height:380px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px"></div>
+              <!-- Input -->
+              <div id="chat-input-area" style="padding:14px 16px;border-top:1px solid var(--border);display:flex;gap:10px">
+                <input type="text" id="chat-input" placeholder="Type a message..." style="flex:1" onkeypress="if(event.key==='Enter')sendChatMessage()">
+                <button class="btn btn-p" style="padding:11px 18px;flex-shrink:0" onclick="sendChatMessage()">Send</button>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -675,14 +696,17 @@ let S = {user:null,profile:null,wallet:null,rate:null,bank:null,activeReq:null,w
 // First check for redirect result, then normal auth state
 handleRedirectResult().then(() => {
   fbAuth.onAuthStateChanged(async fbUser => {
-    // Only handle if not already processing redirect
     const loader = document.getElementById('loader');
-    if (loader.style.display === 'none') return;
-    loader.style.display = 'none';
     if (fbUser) {
+      loader.style.display = 'none';
       S.user = fbUser;
       await bootApp(fbUser);
     } else {
+      loader.style.display = 'none';
+      // Reset state
+      if (S.walletUnsub) { try { S.walletUnsub(); } catch(e){} }
+      S = {user:null,profile:null,wallet:null,rate:null,bank:null,activeReq:null,walletUnsub:null};
+      document.getElementById('app-screen').classList.remove('active');
       document.getElementById('login-screen').classList.add('active');
     }
   });
@@ -801,9 +825,19 @@ async function signInWithGoogle() {
   setBtnLoad("google-btn", true);
   try {
     const provider = new firebase.auth.GoogleAuthProvider();
-    await fbAuth.signInWithRedirect(provider);
+    provider.addScope("email");
+    provider.addScope("profile");
+    const result = await fbAuth.signInWithPopup(provider);
+    if (result.user) {
+      S.user = result.user;
+      const token = await result.user.getIdToken();
+      await api("POST", "/api/auth", {}, token);
+      // onAuthStateChanged will handle the rest
+    }
   } catch(e) {
-    toast("❌ " + e.message, "error");
+    if (e.code !== "auth/popup-closed-by-user") {
+      toast("❌ " + e.message, "error");
+    }
     setBtnLoad("google-btn", false, "Continue with Google");
   }
 }
@@ -1470,7 +1504,10 @@ function copyPid() {
 }
 
 async function logout() {
-  try { await fsAuth.signOut(); } catch(e) { console.error(e); }
+  try {
+    if (S.walletUnsub) S.walletUnsub();
+    await fbAuth.signOut();
+  } catch(e) { console.error(e); }
 }
 
 async function approveReq() {
@@ -1575,6 +1612,9 @@ async function submitTicket() {
   setBtnLoad("ticket-btn", false, "Send Ticket →");
 }
 
+let _chatUnsub = null;
+let _activeTicketId = null;
+
 async function loadMyTickets() {
   const el = document.getElementById("my-tickets");
   if (!el) return;
@@ -1587,25 +1627,117 @@ async function loadMyTickets() {
       return;
     }
     el.innerHTML = tickets.map(t => {
-      const ts = t.createdAt?._seconds || t.createdAt?.seconds;
+      const ts = t.lastMessageAt?._seconds || t.createdAt?._seconds || t.createdAt?.seconds;
       const dt = ts ? new Date(ts*1000).toLocaleString("en-IN", {day:"2-digit",month:"short",hour:"2-digit",minute:"2-digit",hour12:true}) : "—";
       const statusColor = t.status==="open" ? "var(--warn)" : t.status==="replied" ? "var(--accent)" : "var(--text3)";
-      return `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:13px;padding:15px;margin-bottom:10px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <div style="font-size:13px;font-weight:600">${t.subject}</div>
+      const hasNew = t.status === "replied";
+      return `<div onclick="openChat('${t.id}','${(t.subject||"").replace(/'/g,"\'")}','${t.status||"open"}')" style="background:var(--surface2);border:1px solid ${hasNew?"rgba(0,240,160,.3)":"var(--border)"};border-radius:13px;padding:15px;margin-bottom:10px;cursor:pointer;transition:border-color .2s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='${hasNew?"rgba(0,240,160,.3)":"var(--border)"}'">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div style="font-size:13px;font-weight:700">${t.subject}</div>
           <span style="font-size:11px;font-weight:700;color:${statusColor};background:rgba(255,255,255,.05);padding:2px 9px;border-radius:6px">${(t.status||"open").toUpperCase()}</span>
         </div>
-        <div style="font-size:12px;color:var(--text3);margin-bottom:8px">${dt} · ${t.category||"General"}</div>
-        <div style="font-size:13px;color:var(--text2);line-height:1.5">${t.message}</div>
-        ${t.reply ? `<div style="margin-top:10px;padding:10px;background:rgba(0,240,160,.05);border:1px solid rgba(0,240,160,.2);border-radius:9px">
-          <div style="font-size:10px;font-weight:700;color:var(--accent);margin-bottom:4px">ADMIN REPLY</div>
-          <div style="font-size:13px;color:var(--text2);line-height:1.5">${t.reply}</div>
-        </div>` : ""}
+        <div style="font-size:12px;color:var(--text3);margin-bottom:6px">${dt} · ${t.category||"General"}</div>
+        <div style="font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${t.lastMessage||"—"}</div>
+        <div style="font-size:11px;color:var(--accent);margin-top:6px">💬 Open Chat →</div>
       </div>`;
     }).join("");
   } catch(e) {
     el.innerHTML = '<div style="color:var(--danger);padding:20px;text-align:center">Failed to load tickets</div>';
   }
+}
+
+function openChat(ticketId, subject, status) {
+  _activeTicketId = ticketId;
+  // Show chat, hide ticket list
+  document.getElementById("tickets-list-card").style.display = "none";
+  document.getElementById("chat-window").style.display = "block";
+  document.getElementById("chat-subject").textContent = subject;
+  document.getElementById("chat-status").textContent = status.toUpperCase();
+  document.getElementById("chat-messages").innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3)">Loading messages...</div>';
+  // Disable input if closed
+  const inputArea = document.getElementById("chat-input-area");
+  if (inputArea) inputArea.style.display = status === "closed" ? "none" : "flex";
+  // Start realtime listener
+  startChatListener(ticketId);
+}
+
+function closeChat() {
+  if (_chatUnsub) { _chatUnsub(); _chatUnsub = null; }
+  _activeTicketId = null;
+  document.getElementById("chat-window").style.display = "none";
+  document.getElementById("tickets-list-card").style.display = "block";
+  loadMyTickets();
+}
+
+async function startChatListener(ticketId) {
+  if (_chatUnsub) _chatUnsub();
+
+  // First load messages via API immediately
+  try {
+    const token = await S.user.getIdToken();
+    const msgs = await fetch(`/api/support?messages=1&id=${ticketId}`, {
+      headers: {"Authorization": "Bearer " + token}
+    }).then(r => r.json());
+    renderChatMessages(Array.isArray(msgs) ? msgs : []);
+  } catch(e) { console.warn("Initial load failed:", e); }
+
+  // Then start realtime listener
+  _chatUnsub = fsDb.collection("tickets").doc(ticketId).collection("messages")
+    .orderBy("createdAt", "asc")
+    .onSnapshot(snap => {
+      const msgs = snap.docs.map(d => d.data());
+      renderChatMessages(msgs);
+    }, err => {
+      console.error("Chat listener error:", err);
+      // Fallback: poll every 5 seconds if realtime fails
+      const poll = setInterval(async () => {
+        if (!_activeTicketId) { clearInterval(poll); return; }
+        try {
+          const token = await S.user.getIdToken();
+          const msgs = await fetch(`/api/support?messages=1&id=${ticketId}`, {
+            headers: {"Authorization": "Bearer " + token}
+          }).then(r => r.json());
+          renderChatMessages(Array.isArray(msgs) ? msgs : []);
+        } catch(e) {}
+      }, 5000);
+      _chatUnsub = () => clearInterval(poll);
+    });
+}
+
+function renderChatMessages(msgs) {
+  const el = document.getElementById("chat-messages");
+  if (!el) return;
+  if (!msgs.length) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3)">No messages yet</div>';
+    return;
+  }
+  el.innerHTML = msgs.map(m => {
+    const isUser = m.senderRole === "user";
+    const ts = m.createdAt?._seconds || m.createdAt?.seconds;
+    const dt = ts ? new Date(ts*1000).toLocaleTimeString("en-IN", {hour:"2-digit",minute:"2-digit",hour12:true}) : "";
+    return `<div style="display:flex;flex-direction:column;align-items:${isUser?"flex-end":"flex-start"}">
+      <div style="font-size:10px;color:var(--text3);margin-bottom:3px;${isUser?"text-align:right":""}">${m.senderName||""}</div>
+      <div class="msg-bubble ${isUser?"msg-user":"msg-admin"}">${m.message}</div>
+      <div class="msg-time" style="${isUser?"text-align:right":""}">${dt}</div>
+    </div>`;
+  }).join("");
+  // Auto scroll to bottom
+  el.scrollTop = el.scrollHeight;
+}
+
+async function sendChatMessage() {
+  const input = document.getElementById("chat-input");
+  const msg = input?.value?.trim();
+  if (!msg || !_activeTicketId) return;
+  input.value = "";
+  try {
+    const token = await S.user.getIdToken();
+    await fetch(`/api/support?action=message&id=${_activeTicketId}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + token },
+      body: JSON.stringify({ message: msg }),
+    }).then(r => r.json());
+  } catch(e) { toast("❌ Failed to send: " + e.message, "error"); input.value = msg; }
 }
 
 async function loadActivityLog() {
@@ -1665,12 +1797,48 @@ async function loadActivityLog() {
   }
 }
 
+function updateToggleUI(id, checked) {
+  const track = document.getElementById(id+"-track");
+  const thumb = document.getElementById(id+"-thumb");
+  if (track) track.style.background = checked ? "var(--accent)" : "var(--border2)";
+  if (thumb) thumb.style.transform  = checked ? "translateX(18px)" : "translateX(0)";
+}
+
+function loadNotifPrefs() {
+  const localPrefs  = JSON.parse(localStorage.getItem("zap-notif-prefs") || "{}");
+  const serverPrefs = S.profile?.notifPrefs || {};
+  const prefs = { ...localPrefs, ...serverPrefs };
+  ["notif-deposit","notif-withdraw","notif-kyc","notif-rate"].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const checked = id in prefs ? prefs[id] : (id !== "notif-rate");
+    el.checked = checked;
+    updateToggleUI(id, checked);
+  });
+}
+
+async function saveNotifPrefs() {
+  const prefs = {};
+  ["notif-deposit","notif-withdraw","notif-kyc","notif-rate"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) prefs[id] = el.checked;
+  });
+  localStorage.setItem("zap-notif-prefs", JSON.stringify(prefs));
+  try {
+    const token = await S.user.getIdToken();
+    await api("PATCH", "/api/auth", { notifPrefs: prefs }, token);
+    toast("✅ Notification preferences saved!", "success");
+  } catch(e) {
+    toast("✅ Saved locally!", "success");
+  }
+}
+
 function toggleNotif(id) {
   const el = document.getElementById(id);
   if (!el) return;
   el.checked = !el.checked;
   updateToggleUI(id, el.checked);
-  if (typeof saveNotifPrefs === "function") saveNotifPrefs();
+  saveNotifPrefs();
 }
 
 function populateProfile() {

@@ -104,15 +104,18 @@ module.exports = handle(async (req, res) => {
     });
     const u=(await db.collection("users").doc(wData.uid).get()).data()||{};
     fetch(SHEET_WEBHOOK,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"approved",wid:id,name:u.name||u.email||"",email:u.email||"",phone:u.phone||"",amountUSDT:wData.amountUSDT,rate:wData.rate,grossINR:wData.grossINR,feeINR:wData.feeINR,netINR:wData.netINR,bank:wData.bank,utr,note,approvedAt:Date.now()})}).catch(e=>console.error("Sheet:",e));
-    // Send approval email (check notif prefs)
+    // Send approval email (check notif prefs — default ON)
     const notifPrefs = u.notifPrefs || {};
-    const sendWitEmail = notifPrefs["notif-withdraw"] !== false; // default true
-    if (u.email && sendWitEmail) sendWithdrawalApproved({
-      to: u.email, name: u.name||u.email||"User",
-      amountUSDT: wData.amountUSDT, netINR: wData.netINR,
-      utr, bank: wData.bank,
-      date: new Date().toLocaleString("en-IN",{timeZone:"Asia/Kolkata"}),
-    }).catch(e=>console.error("Email:",e));
+    const sendWitEmail = notifPrefs["notif-withdraw"] !== false;
+    console.log(`[Admin] Approve email: to=${u.email} sendWitEmail=${sendWitEmail} notifPrefs=${JSON.stringify(notifPrefs)}`);
+    if (u.email && sendWitEmail) {
+      sendWithdrawalApproved({
+        to: u.email, name: u.name||u.email||"User",
+        amountUSDT: wData.amountUSDT, netINR: wData.netINR,
+        utr, bank: wData.bank,
+        date: new Date().toLocaleString("en-IN",{timeZone:"Asia/Kolkata"}),
+      }).catch(e=>console.error("Approval email error:",e));
+    }
     return res.json({ ok:true });
   }
 
@@ -133,16 +136,17 @@ module.exports = handle(async (req, res) => {
     });
     const u=(await db.collection("users").doc(wData.uid).get()).data()||{};
     fetch(SHEET_WEBHOOK,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"rejected",wid:id,name:u.name||u.email||"",email:u.email||"",phone:u.phone||"",amountUSDT:wData.amountUSDT,netINR:wData.netINR,bank:wData.bank,reason,note,rejectedAt:Date.now()})}).catch(e=>console.error("Sheet:",e));
-    // Send rejection email (check notif prefs)
+    // Send rejection email (check notif prefs — default ON)
     const notifPrefsR = u.notifPrefs || {};
     const sendRejEmail = notifPrefsR["notif-withdraw"] !== false;
+    console.log(`[Admin] Reject email: to=${u.email} sendRejEmail=${sendRejEmail}`);
     if (u.email && sendRejEmail) {
       const wSnap = await db.collection("wallets").doc(wData.uid).get();
       const newBal = wSnap.exists ? (wSnap.data().balance||0).toFixed(2) : "—";
       sendWithdrawalRejected({
         to: u.email, name: u.name||u.email||"User",
         amountUSDT: wData.amountUSDT, reason, refundedBalance: newBal,
-      }).catch(e=>console.error("Email:",e));
+      }).catch(e=>console.error("Rejection email error:",e));
     }
     return res.json({ ok:true });
   }
