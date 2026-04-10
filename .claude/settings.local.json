@@ -4,7 +4,20 @@
       "Bash(vercel --version)",
       "Bash(node -e \":*)",
       "Bash(vercel --prod)",
-      "Bash(vercel logs:*)"
+      "Bash(vercel logs:*)",
+      "Bash(npx --yes serve public -p 4000)",
+      "Bash(pkill -f \"serve public\")",
+      "Bash(npx serve:*)",
+      "Bash(npx vercel:*)",
+      "Bash(pkill -f \"node.*serve\")",
+      "Bash(vercel dev:*)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:4001/)",
+      "Bash(npx code-review-graph:*)",
+      "Read(//c/Users/daksh/.claude/**)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('mcpServers', {}\\), indent=2\\)\\)\")",
+      "Bash(where code-review-graph:*)",
+      "Bash(npm list:*)",
+      "Bash(code-review-graph:*)"
     ]
   }
 }
